@@ -204,7 +204,7 @@ export default function Properties() {
       images: property.images.map((img) => img.imageUrl),
       pinCode: String(property.pinCode),
       thumbnailImage: property.thumbnailImage,
-      virtualTourLink: property.virtualTourLink.split("#VIDEO#"),
+      virtualTourLink: property.virtualTourLink?.split("#VIDEO#"),
     });
     setIsEditing(true);
     setShowCreateModal(true);

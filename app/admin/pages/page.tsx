@@ -52,7 +52,7 @@ interface AboutUsContent {
   section: string
   title: string
   content: string
-  image_url: string
+  imageUrl: string
   display_order: number
   is_active: boolean
 }
@@ -62,13 +62,13 @@ interface TeamMember {
   name: string
   position: string
   description: string
-  image_url: string
+  imageUrl: string
   email: string
   phone: string
-  social_linkedin: string
-  social_twitter: string
-  display_order: number
-  is_active: boolean
+  socialLinkedin: string
+  socialTwitter: string
+  displayOrder: number
+  isActive: boolean
 }
 
 interface CompanyValue {
@@ -409,9 +409,9 @@ export default function AboutUsManagement() {
                     <CardContent className="p-4">
                       <div className="space-y-3">
                         <div className="w-full h-32 bg-gray-200 rounded-md flex items-center justify-center">
-                          {member.image_url ? (
+                          {member.imageUrl ? (
                             <img
-                              src={member.image_url || "/placeholder.svg"}
+                              src={`/images/${member.imageUrl}` || "/placeholder.svg"}
                               alt={member.name}
                               className="w-full h-full object-cover rounded-md"
                             />
@@ -821,23 +821,23 @@ export default function AboutUsManagement() {
                 <div className="space-y-2">
                   <Label>LinkedIn URL</Label>
                   <Input
-                    value={teamForm.social_linkedin || ""}
-                    onChange={(e) => setTeamForm({ ...teamForm, social_linkedin: e.target.value })}
+                    value={teamForm.socialLinkedin || ""}
+                    onChange={(e) => setTeamForm({ ...teamForm, socialLinkedin: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Twitter URL</Label>
                   <Input
-                    value={teamForm.social_twitter || ""}
-                    onChange={(e) => setTeamForm({ ...teamForm, social_twitter: e.target.value })}
+                    value={teamForm.socialTwitter || ""}
+                    onChange={(e) => setTeamForm({ ...teamForm, socialTwitter: e.target.value })}
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <MediaSelector
                   label="Profile Image"
-                  value={teamForm.image_url || ""}
-                  onChange={(value) => setTeamForm({ ...teamForm, image_url: Array.isArray(value) ? value[0] : value })}
+                  value={teamForm.imageUrl || ""}
+                  onChange={(value) => setTeamForm({ ...teamForm, imageUrl: Array.isArray(value) ? value[0] : value })}
                   multipleUpload={false}
                 />
               </div>
@@ -845,7 +845,7 @@ export default function AboutUsManagement() {
                 <Button type="button" variant="outline" onClick={() => setShowTeamModal(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Save Team Member</Button>
+                <Button type="submit" className="btn-primary">Save Team Member</Button>
               </div>
             </form>
           </DialogContent>

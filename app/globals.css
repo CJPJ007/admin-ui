@@ -107,6 +107,6 @@
   }
 
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700;
+    @apply bg-[#0056FF] text-white hover:bg-[#0011ff];
   }
 }

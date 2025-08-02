@@ -23,6 +23,8 @@ import {
   Moon,
   Bell,
   User,
+  Search,
+  ChevronDown,
 } from "lucide-react"
 import { ThemeProvider } from "../theme-provider"
 import { useTheme } from "next-themes"
@@ -35,7 +37,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [darkMode, setDarkMode] = useState(false)
   const { setTheme } = useTheme();
   const pathname = usePathname()
-
+  const [showDropdown, setShowDropdown] = useState(false);
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme")
     if (savedTheme === "dark") {
@@ -60,86 +62,111 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const menuItems = [
     { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/admin/properties", icon: Building, label: "Manage Properties" },
-    { href: "/admin/sliders", icon: Images, label: "Manage Sliders" },
-    { href: "/admin/inquiries", icon: Mail, label: "Manage Inquiries" },
-    { href: "/admin/agents", icon: Users, label: "Manage Agents" },
+    { href: "/admin/properties", icon: Building, label: "Properties" },
+    { href: "/admin/sliders", icon: Images, label: "Sliders" },
+    { href: "/admin/inquiries", icon: Mail, label: "Inquiries" },
+    { href: "/admin/agents", icon: Users, label: "Agents" },
     { href: "/admin/reports", icon: BarChart3, label: "Reports" },
-    { href: "/admin/pages", icon: FileText, label: "Manage Pages" },
-    { href: "/admin/blogs", icon: BookOpen, label: "Manage Blogs" },
+    { href: "/admin/pages", icon: FileText, label: "Pages" },
+    { href: "/admin/blogs", icon: BookOpen, label: "Blogs" },
     { href: "/admin/media", icon: Camera, label: "Media" },
-    { href: "/admin/settings", icon: Settings, label: "Settings" },
     { href: "/admin/administration", icon: Shield, label: "Administration" },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Top Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-800 dark:bg-slate-900 text-white border-b border-slate-700">
-        <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex items-center space-x-3">
-            <img src="/placeholder.svg?height=30&width=120" alt="Ananta Realty Logo" className="h-8" />
-          </div>
-
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700">
-              <Globe className="h-4 w-4 mr-2" />
-              View website
-            </Button>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-white hover:bg-slate-700">
-              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-
-            <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700 relative">
-              <Bell className="h-4 w-4" />
-              <Badge
-                variant="secondary"
-                className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-cyan-400 text-slate-900"
-              >
-                8
-              </Badge>
-            </Button>
-
-            <Button variant="ghost" size="sm" className="text-white hover:bg-slate-700 bg-slate-700">
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="fixed top-14 left-0 z-40 w-64 h-[calc(100vh-3.5rem)] bg-slate-800 dark:bg-slate-900 border-r border-slate-700 overflow-y-auto">
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
+      <aside className="fixed top-0 left-0 z-40 w-64 h-screen bg-[#0056FF] rounded-r-3xl shadow-lg">
+        <div className="flex flex-col h-full">
+          {/* Brand */}
+          <div className="p-6">
+            <h1 className="text-white text-2xl font-bold">Ananta Realty</h1>
+          </div>
 
-            return (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  className={`w-full p-6 justify-start text-[1rem] text-left ${
-                    isActive ? "bg-slate-700 text-white" : "text-slate-300 hover:text-white hover:bg-slate-700"
-                  }`}
-                >
-                  <Icon className="h-6 w-6 mr-3" />
-                  {item.label}
-                </Button>
-              </Link>
-            )
-          })}
-        </nav>
+          {/* Navigation */}
+          <nav className="flex-1 px-4 space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <div className={`relative ${isActive ? 'mb-4' : ''}`}>
+                    <Button
+                      variant="ghost"
+                      className={`w-full p-4 justify-start text-left rounded-2xl transition-all duration-200 ${
+                        isActive 
+                          ? "bg-white text-[#0056FF] shadow-lg transform translate-x-2" 
+                          : "text-white hover:bg-white/10"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 mr-3" />
+                      <span className="font-medium">{item.label}</span>
+                    </Button>
+                  </div>
+                </Link>
+              )
+            })}
+          </nav>
+
+          
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 mt-14 bg-white dark:bg-gray-900 overflow-y-auto min-h-[calc(100vh-3.5rem)]">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+      <main className="ml-64 min-h-screen bg-gray-50">
+        {/* Top Header */}
+        <header className="bg-white shadow-sm border-b border-gray-100">
+          <div className="flex items-center justify-between px-8 py-4">
+            <div className="flex items-center space-x-6">
+              <h2 className="text-2xl font-semibold text-gray-800">Admin Management</h2>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              
+
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center space-x-2 text-gray-600 hover:bg-gray-100"
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                >
+                  <img 
+                    src="/placeholder-user.jpg" 
+                    alt="Profile" 
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                    <Link
+                      href="#"
+                      onClick={async (e) => {
+                        e.preventDefault()
+                        await fetch("/api/logout", { method: "POST" })
+                        window.location.href = "/login"
+                      }}
+                      className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                    >
+                      Logout
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 min-h-[calc(100vh-200px)]">
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </div>
+        </div>
       </main>
     </div>
   )

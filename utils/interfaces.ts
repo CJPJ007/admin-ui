@@ -91,3 +91,29 @@ export interface CacheManagementResponse {
   size: number
   lastClearedTime: string
 }
+
+
+export interface FAQ {
+  id: number
+  question: string
+  answer: string
+}
+
+export interface Customer {
+  id:number
+  name:string
+  email:string
+  mobile:string
+  avatar:string
+}
+
+
+export interface Inquiry {
+  id:number
+  name:string
+  email:string
+  mobile:string
+  property:string
+  appointmentDate:string
+  message:string
+}

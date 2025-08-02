@@ -21,6 +21,7 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
+  User,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -62,16 +63,30 @@ export default function CacheManagement() {
       status: "active",
     },
     {
-      id: "users",
-      name: "Users",
-      description: "Clear user profiles, sessions, and authentication cache",
-      icon: Users,
+      id: "companyInfoAll",
+      name: "Company Info",
+      description: "Clear company information (social media, email, etc.) cache",
+      icon: FileText,
       status: "active",
     },
     {
-      id: "pages",
-      name: "Pages",
-      description: "Clear static pages, content, and navigation cache",
+      id: "companyValuesAll",
+      name: "Company Values",
+      description: "Clear company values new or edit cache",
+      icon: FileText,
+      status: "active",
+    },
+    {
+      id: "teamMembersAll",
+      name: "Team Members",
+      description: "Clear team members information cache",
+      icon: User,
+      status: "active",
+    },
+    {
+      id: "aboutUsContentAll",
+      name: "About Us Story",
+      description: "Clear about us story and terms/conditions cache",
       icon: FileText,
       status: "active",
     },

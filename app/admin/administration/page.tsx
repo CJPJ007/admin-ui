@@ -7,9 +7,10 @@ import Link from "next/link"
 
 export default function Administration() {
   const adminCards = [
-    { icon: Users, title: "Users", description: "View and update your system users",link:"/admin/users" },
+    { icon: Users, title: "Users", description: "View and update your system users", link: "/admin/users" },
     { icon: ClipboardList, title: "Activity Logs", description: "View and delete your system activity logs", link: "/admin/activity" },
     { icon: Trash2, title: "Cache Management", description: "Clear cache to make your site up to date", link: "/admin/cache-management" },
+    { icon: Shield, title: "Customer Management", description: "Manage your customers", link: "/admin/customers" },
   ]
 
   return (

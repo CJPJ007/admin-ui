@@ -54,8 +54,6 @@ export default function Users() {
     phone: string
     role: string
     isActive: boolean
-    firstName: string
-    lastName: string
   }>({
     id: null,
     username: "",
@@ -65,8 +63,6 @@ export default function Users() {
     phone: "",
     role: "user",
     isActive: true,
-    firstName: "",
-    lastName: "",
   })
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -229,6 +225,18 @@ export default function Users() {
   const handleEditWithUrl = (user: UserInterface) => {
     // Update URL with edit parameters
     router.push(`/admin/users?edit=true&id=${user.id}`)
+    setFormData({
+       id: null,
+    username: user.username,
+    password: "",
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    isActive: user.isActive,
+    });
+    setIsEditing(true);
+    setShowCreateModal(true);
   }
 
   const handleDelete = async (id: number) => {
@@ -255,8 +263,6 @@ export default function Users() {
       phone: "",
       role: "user",
       isActive: true,
-      firstName: "",
-      lastName: "",
     })
     setPasswordData({
       currentPassword: "",

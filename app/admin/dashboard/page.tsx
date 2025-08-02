@@ -54,12 +54,12 @@ export default function Dashboard() {
       trendDirection: "up",
     },
     {
-      title: "Agents",
+      title: "Customers",
       value: "0",
       icon: Users,
       color: "bg-sky-500",
-      link: "/admin/agents",
-      field: "User",
+      link: "/admin/customers",
+      field: "Customer",
       trend: "+2%",
       trendDirection: "up",
     },
@@ -139,7 +139,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchAllStats = async () => {
       setLoading(true)
-      await Promise.all([fetchStats("Property"), fetchStats("Slider"), fetchStats("User"), fetchStats("Inquiry")])
+      await Promise.all([fetchStats("Property"), fetchStats("Slider"), fetchStats("Customer"), fetchStats("Inquiry")])
       setLoading(false)
     }
 

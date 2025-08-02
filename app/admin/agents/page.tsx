@@ -50,6 +50,8 @@ interface PropertySale {
   property: Property;
   soldAmount: number;
   saleDate?: string;
+  commissionAmount?: number;
+  commissionPercentage?: number;
 }
 
 interface Agent {
@@ -358,6 +360,28 @@ export default function Agents() {
     if (!propertiesSold || propertiesSold.length === 0) return 0;
     return propertiesSold.reduce((total, sale) => total + sale.soldAmount, 0);
   };
+
+  function handleCommissionAmount(index: number, commissionPercentage: number): void {
+    const updatedSales = [...(formData.propertiesSold || [])];
+    const sale = updatedSales[index];
+    if (!sale) return;
+
+    // Update commission percentage
+    sale.commissionPercentage = commissionPercentage;
+
+    // Calculate commission amount based on soldAmount and commissionPercentage
+    if (sale.soldAmount && commissionPercentage >= 0) {
+      sale.commissionAmount = (sale.soldAmount * commissionPercentage) / 100;
+    } else {
+      sale.commissionAmount = 0;
+    }
+
+    updatedSales[index] = sale;
+    setFormData({
+      ...formData,
+      propertiesSold: updatedSales,
+    });
+  }
 
   return (
     <AdminLayout>
@@ -873,6 +897,38 @@ export default function Agents() {
                                   onChange={(e) =>
                                     handleSaleDateChange(index, e.target.value)
                                   }
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">
+                                  Commission Percent (%) *
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  placeholder="Enter commission percent"
+                                  value={sale.commissionPercentage || ""}
+                                  onChange={(e) =>
+                                    handleCommissionAmount(
+                                      index,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">
+                                  Commission Amount
+                                </Label>
+                                <Input
+                                  type="number"
+                                  value={sale.commissionAmount || ""}
+                                  disabled
                                 />
                               </div>
                             </div>

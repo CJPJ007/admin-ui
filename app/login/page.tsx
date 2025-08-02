@@ -126,14 +126,14 @@ export default function AdminLogin() {
                   />
                 </div>
 
-                <Button
+                {/* <Button
                   type="button"
                   variant="link"
                   onClick={handleRecoverPassword}
                   className="w-full text-right p-0 h-auto text-sm text-gray-600 hover:text-gray-800"
                 >
                   Recover Password
-                </Button>
+                </Button> */}
 
                 <Button type="submit" disabled={isLoading} className="w-full bg-green-600 hover:bg-green-700 text-white">
                   {isLoading ? "Logging in..." : "Login to Dashboard"}
