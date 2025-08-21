@@ -48,6 +48,7 @@ export default function Sliders() {
     buttonText: "",
     sortOrder: 0,
     isActive: true,
+    page: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -292,6 +293,12 @@ export default function Sliders() {
                       >
                         Status
                       </SelectItem>
+                      <SelectItem
+                        value="page"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Page
+                      </SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -377,6 +384,7 @@ export default function Sliders() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Subtitle</TableHead>
+                  <TableHead>Page</TableHead>
                   <TableHead>Image URL</TableHead>
                   <TableHead>Order</TableHead>
                   <TableHead>Status</TableHead>
@@ -390,6 +398,7 @@ export default function Sliders() {
                       {slider.title}
                     </TableCell>
                     <TableCell>{slider.subtitle}</TableCell>
+                    <TableCell>{slider.page}</TableCell>
                     <TableCell className="max-w-xs truncate">
                       <img
                         src={
@@ -499,14 +508,13 @@ export default function Sliders() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
                   value={formData.title || ""}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
               <div className="space-y-2">
@@ -517,6 +525,62 @@ export default function Sliders() {
                   onChange={handleInputChange}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="page">Page</Label>
+                 <Select
+                    value={formData.page}
+                    onValueChange={(e)=>{handleInputChange({target: {id: "page", value: e}})}}
+                    required
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select Page" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem
+                        value="Home"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Home
+                      </SelectItem>
+                      <SelectItem
+                        value="Properties"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Properties
+                      </SelectItem>
+                      <SelectItem
+                        value="Blog"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Blog
+                      </SelectItem>
+                      <SelectItem
+                        value="Services"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Services
+                      </SelectItem>
+                      <SelectItem
+                        value="About"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        About
+                      </SelectItem>
+                      <SelectItem
+                        value="Gallery"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Gallery
+                      </SelectItem>
+                      <SelectItem
+                        value="Contact"
+                        className="hover:bg-gray-100 hover:cursor-pointer"
+                      >
+                        Contact
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

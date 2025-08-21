@@ -1,7 +1,8 @@
 {
-  "/admin/reports/page": "app/admin/reports/page.js",
-  "/admin/sliders/page": "app/admin/sliders/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/pages/page": "app/admin/pages/page.js",
+  "/admin/analytics/page": "app/admin/analytics/page.js",
   "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/inquiries/page": "app/admin/inquiries/page.js",
-  "/admin/pages/page": "app/admin/pages/page.js"
+  "/admin/administration/page": "app/admin/administration/page.js",
+  "/admin/internationlization/page": "app/admin/internationlization/page.js"
 }

@@ -14,6 +14,8 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
         try {
           const response = await fetch('/api/admin/auth/status')
           if (response.ok) {
+            const data = response.json();
+          
             setIsAuthenticated(true)
           } else {
             router.push('/login')

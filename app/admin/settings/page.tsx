@@ -33,6 +33,7 @@ import {
   BarChart3,
   HelpCircle,
   Sliders,
+  Video,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -53,7 +54,9 @@ export default function SettingsPage() {
     // { icon: Mail, title: "Email rules", description: "Configure email rules for validation" },
     // { icon: FileText, title: "Media", description: "View and update your media settings" },
     // { icon: Link, title: "Permalink", description: "View and update your permalink settings" },
-    { icon: Globe, title: "Languages", description: "View and update your website languages", link:"/admin/faqs" },
+    { icon: Globe, title: "Languages", description: "View and update your website languages", link:"/admin/internationlization" },
+    { icon: Users, title: "Client Stories", description: "View and update your client stories", link:"/admin/client-stories" },
+    { icon: Video, title: "Gallery Videos", description: "View and update your gallery videos", link:"/admin/gallery-videos" },
     // { icon: Palette, title: "Admin appearance", description: "View and update logo, favicon, layout,..." },
     // { icon: Code, title: "API Settings", description: "View and update your API settings" },
     // { icon: Zap, title: "Cache", description: "Configure cache for system for optimize speed" },
@@ -85,11 +88,11 @@ export default function SettingsPage() {
   // ]
 
   const otherSettings = [
-    { icon: Users, title: "Social Login", description: "View and update your social login settings", link:"/admin/faqs" },
+    // { icon: Users, title: "Social Login", description: "View and update your social login settings", link:"/admin/faqs" },
     // { icon: BookOpen, title: "Blog", description: "View and update blog settings" },
     // { icon: MessageSquare, title: "Contact", description: "Settings for contact plugin" },
     // { icon: Shield, title: "Captcha", description: "View and update reCAPTCHA and math captcha" },
-    { icon: BarChart3, title: "Google Analytics", description: "Config Credentials for Google Analytics", link:"/admin/faqs" },
+    { icon: BarChart3, title: "Google Analytics", description: "Config Credentials for Google Analytics", link:"/admin/analytics" },
     { icon: HelpCircle, title: "FAQs", description: "View and update FAQs settings", link:"/admin/faqs" },
     // { icon: Sliders, title: "Simple Sliders", description: "Settings for simple sliders" },
   ]

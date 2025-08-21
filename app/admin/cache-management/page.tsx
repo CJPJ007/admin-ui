@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Clock,
   User,
+  Briefcase,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -95,6 +96,20 @@ export default function CacheManagement() {
       name: "Blogs",
       description: "Clear blog posts, categories, and comments cache",
       icon: BookOpen,
+      status: "active",
+    },
+    {
+      id: "legalContentAll",
+      name: "Terms And Condition & Privacy Policy",
+      description: "Clear terms and conditions cache",
+      icon: BookOpen,
+      status: "active",
+    },
+    {
+      id: "services",
+      name: "Services",
+      description: "Clear services cache",
+      icon: Briefcase,
       status: "active",
     },
   ]);
@@ -237,8 +252,8 @@ export default function CacheManagement() {
 
     try {
       // Simulate API call
-      await api("/api/admin/cache/clearAllCaches", {
-        method: "POST",
+      await api("/api/admin/cache/clearAllCache", {
+        method: "DELETE",
       });
 
       // Update all items to cleared status

@@ -2,7 +2,7 @@
 
 import AdminLayout from "@/components/layout/admin-layout"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
-import { Users, Shield, ClipboardList, Database, Calendar, Trash2, RotateCcw, Info, RefreshCw } from "lucide-react"
+import { Users, Shield, ClipboardList, Database, Calendar, Trash2, RotateCcw, Info, RefreshCw, MessageCirclePlus } from "lucide-react"
 import Link from "next/link"
 
 export default function Administration() {
@@ -11,6 +11,8 @@ export default function Administration() {
     { icon: ClipboardList, title: "Activity Logs", description: "View and delete your system activity logs", link: "/admin/activity" },
     { icon: Trash2, title: "Cache Management", description: "Clear cache to make your site up to date", link: "/admin/cache-management" },
     { icon: Shield, title: "Customer Management", description: "Manage your customers", link: "/admin/customers" },
+    { icon: MessageCirclePlus, title: "Notification Management", description: "Send global notification and view the recent notifications", link: "/admin/notifications" },
+
   ]
 
   return (

@@ -24,6 +24,7 @@ export interface Property {
   pinCode: number;
   thumbnailImage: string;
   virtualTourLink: string;
+  cents:number;
 }
 
 export interface FilterType {
@@ -41,6 +42,7 @@ export interface Slider {
   buttonText: string;
   sortOrder: number;
   isActive: boolean;
+  page: string;
 }
 
 export interface User {
@@ -116,4 +118,14 @@ export interface Inquiry {
   property:string
   appointmentDate:string
   message:string
+}
+
+export interface Testimonial {
+  id: number,
+  youtubeUrl: string,
+}
+
+export interface GalleryVideo {
+  id: number,
+  youtubeUrl: string,
 }

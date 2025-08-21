@@ -73,6 +73,16 @@ export default function Dashboard() {
       trend: "0%",
       trendDirection: "neutral",
     },
+    {
+      title: "Agents",
+      value: "0",
+      icon: Images,
+      color: "bg-blue-600",
+      link: "/admin/agents",
+      field: "User",
+      trend: "0%",
+      trendDirection: "neutral",
+    },
   ])
 
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([
@@ -120,9 +130,9 @@ export default function Dashboard() {
 
   const activityLogPageSize = 10;
   
-  async function fetchStats(field: string) {
+  async function fetchStats(field: string, condition: string) {
     try {
-      const count = await (await api(`/api/fieldSearch/count/${field}`)).json()
+      const count = await (await api(`/api/fieldSearch/count/${field}?query=${condition}`)).json()
       setStats((prevStats) =>
         prevStats.map((stat) => {
           if (stat.field.toLowerCase() === field.toLowerCase()) {
@@ -139,7 +149,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchAllStats = async () => {
       setLoading(true)
-      await Promise.all([fetchStats("Property"), fetchStats("Slider"), fetchStats("Customer"), fetchStats("Inquiry")])
+      await Promise.all([fetchStats("Property",""), fetchStats("Slider",""), fetchStats("Customer",""), fetchStats("Inquiry",""), fetchStats("User","role=='Agent'")])
       setLoading(false)
     }
 
@@ -312,7 +322,7 @@ export default function Dashboard() {
                       <TableRow key={post.id}>
                         <TableCell className="font-medium">{post.id}</TableCell>
                         <TableCell>
-                          <Link href={`/admin/blogs/edit/${post.id}`} className="text-blue-600 hover:underline">
+                          <Link href={`/admin/blogs?edit=true&id=${post.id}`} className="text-blue-600 hover:underline">
                             {post.title}
                           </Link>
                         </TableCell>

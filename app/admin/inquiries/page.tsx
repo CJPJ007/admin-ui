@@ -250,10 +250,6 @@ export default function Inquiries() {
               Dashboard
             </Link>
             <span className="mx-2">/</span>
-            <Link href="/admin/administration" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              System
-            </Link>
-            <span className="mx-2">/</span>
             <span>Inquiries</span>
           </div>
         </nav>
