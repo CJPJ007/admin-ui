@@ -94,10 +94,10 @@ interface CompanyValue {
   id: number;
   title: string;
   description: string;
-  icon_name: string;
-  icon_color: string;
-  display_order: number;
-  is_active: boolean;
+  iconName: string;
+  iconColor: string;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 interface CompanyInfo {
@@ -692,7 +692,7 @@ export default function AboutUsManagement() {
                       className="flex items-center gap-2"
                       onClick={() => {
                         setEditingValue(null);
-                        setValueForm({ icon_color: "#6366f1" });
+                        setValueForm({ iconColor: "#6366f1" });
                       }}
                     >
                       <Plus className="h-4 w-4" />
@@ -711,11 +711,11 @@ export default function AboutUsManagement() {
                           <div
                             className="p-3 rounded-full"
                             style={{
-                              backgroundColor: `${value.icon_color}20`,
-                              color: value.icon_color,
+                              backgroundColor: `${value.iconColor}20`,
+                              color: value.iconColor,
                             }}
                           >
-                            {iconMap[value.icon_name] || (
+                            {iconMap[value.iconName] || (
                               <Heart className="h-6 w-6" />
                             )}
                           </div>
@@ -1511,9 +1511,9 @@ export default function AboutUsManagement() {
                 <div className="space-y-2">
                   <Label>Icon</Label>
                   <Select
-                    value={valueForm.icon_name || "heart"}
+                    value={valueForm.iconName || "heart"}
                     onValueChange={(value) =>
-                      setValueForm({ ...valueForm, icon_name: value })
+                      setValueForm({ ...valueForm, iconName: value })
                     }
                   >
                     <SelectTrigger>
@@ -1535,22 +1535,22 @@ export default function AboutUsManagement() {
                   <Label>Icon Color</Label>
                   <div className="flex gap-2">
                     <Input
-                      value={valueForm.icon_color || "#6366f1"}
+                      value={valueForm.iconColor || "#6366f1"}
                       onChange={(e) =>
                         setValueForm({
                           ...valueForm,
-                          icon_color: e.target.value,
+                          iconColor: e.target.value,
                         })
                       }
                       type="color"
                       className="w-16"
                     />
                     <Input
-                      value={valueForm.icon_color || "#6366f1"}
+                      value={valueForm.iconColor || "#6366f1"}
                       onChange={(e) =>
                         setValueForm({
                           ...valueForm,
-                          icon_color: e.target.value,
+                          iconColor: e.target.value,
                         })
                       }
                       placeholder="#6366f1"
