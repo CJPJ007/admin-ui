@@ -152,7 +152,7 @@ interface LegalContent {
   isActive: boolean
 }
 export default function AboutUsManagement() {
-  const [activeTab, setActiveTab] = useState("story");
+  const [activeTab, setActiveTab] = useState("team");
   const [isClient, setIsClient] = useState(false);
 
   // State for different sections
@@ -543,13 +543,13 @@ export default function AboutUsManagement() {
           className="space-y-6"
         >
           <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="story" className="flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              Our Story
-            </TabsTrigger>
             <TabsTrigger value="team" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Team Members
+            </TabsTrigger>
+            <TabsTrigger value="story" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              Our Story
             </TabsTrigger>
             <TabsTrigger value="values" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
@@ -631,7 +631,7 @@ export default function AboutUsManagement() {
                   <Card key={member.id}>
                     <CardContent className="p-4">
                       <div className="space-y-3">
-                        <div className="w-full h-32 bg-gray-200 rounded-md flex items-center justify-center">
+                        <div className="w-full bg-gray-200 rounded-md flex items-center justify-center">
                           {member.imageUrl ? (
                             <img
                               src={
@@ -639,7 +639,7 @@ export default function AboutUsManagement() {
                                 "/placeholder.svg"
                               }
                               alt={member.name}
-                              className="w-full h-full object-cover rounded-md"
+                              className="w-full h-64 object-cover rounded-md"
                             />
                           ) : (
                             <Users className="h-12 w-12 text-gray-400" />
@@ -1444,6 +1444,19 @@ export default function AboutUsManagement() {
                       setTeamForm({
                         ...teamForm,
                         socialTwitter: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Display Order</Label>
+                  <Input
+                    value={teamForm.displayOrder || ""}
+                    type="number"
+                    onChange={(e) =>
+                      setTeamForm({
+                        ...teamForm,
+                        displayOrder: parseInt(e.target.value),
                       })
                     }
                   />

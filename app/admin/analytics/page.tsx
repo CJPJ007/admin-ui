@@ -1,633 +1,291 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import AdminLayout from "@/components/layout/admin-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import {
-  BarChart3,
-  Eye,
-  Search,
-  ShoppingCart,
-  Users,
-  Code,
-  Save,
-  Loader2,
-  CheckCircle,
-  AlertTriangle,
-  Info,
-} from "lucide-react"
+import { BarChart3, Save, ArrowLeft, CheckCircle, AlertTriangle } from "lucide-react"
+import Link from "next/link"
 import api from "@/utils/api"
+import { Loader } from "@/components/PageComponentSkeletonLoader"
 
-interface AnalyticsConfig {
-  // Google Analytics 4
-  ga4MeasurementId: string
-  ga4Enabled: boolean
-
-  // Google Tag Manager
-  gtmContainerId: string
-  gtmEnabled: boolean
-
-  // Enhanced Ecommerce
-  enhancedEcommerceEnabled: boolean
-
-  // Demographics and Interests
-  demographicsEnabled: boolean
-
-  // Site Search Tracking
-  siteSearchEnabled: boolean
-  searchParameter: string
-
-  // Custom Dimensions
-  customDimensions: string
-
-  // Custom Metrics
-  customMetrics: string
-
-  // Privacy Settings
-  anonymizeIp: boolean
-  cookieConsent: boolean
-
-  // Additional Settings
-  debugMode: boolean
-  sampleRate: number
+interface GAConfig {
+  id?: number
+  trackingId: string
 }
 
 export default function AnalyticsPage() {
-  const [config, setConfig] = useState<AnalyticsConfig>({
-    ga4MeasurementId: "",
-    ga4Enabled: false,
-    gtmContainerId: "",
-    gtmEnabled: false,
-    enhancedEcommerceEnabled: false,
-    demographicsEnabled: false,
-    siteSearchEnabled: false,
-    searchParameter: "q",
-    customDimensions: "",
-    customMetrics: "",
-    anonymizeIp: true,
-    cookieConsent: true,
-    debugMode: false,
-    sampleRate: 100,
+  const [config, setConfig] = useState<GAConfig>({
+    trackingId: "",
   })
-
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [testingConnection, setTestingConnection] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [hasExistingConfig, setHasExistingConfig] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchAnalyticsConfig()
+    fetchGAConfig()
   }, [])
 
-  const fetchAnalyticsConfig = async () => {
+  const fetchGAConfig = async () => {
     try {
-      setIsLoading(true)
-      const response = await api("/api/admin/settings/analytics")
-      const data = await response.json()
-      setConfig(data || config)
+      setLoading(true)
+      const response = await api("/api/admin/ga-config")
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data && data.trackingId) {
+          setConfig(data)
+          setHasExistingConfig(true)
+        }
+      }
     } catch (error) {
-      console.error("Error fetching analytics config:", error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch analytics configuration",
-        variant: "destructive",
-      })
+      console.error("Error fetching GA config:", error)
+      // Don't show error toast for initial load if config doesn't exist
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  const handleSaveConfig = async () => {
+  const handleSave = async () => {
     try {
-      setIsSaving(true)
+      setSaving(true)
 
-      // Validate required fields
-      if (config.ga4Enabled && !config.ga4MeasurementId.trim()) {
+      // Validate tracking ID format
+      if (!config.trackingId) {
         toast({
           title: "Validation Error",
-          description: "GA4 Measurement ID is required when GA4 is enabled",
+          description: "Please enter a Google Analytics tracking ID",
           variant: "destructive",
         })
         return
       }
 
-      if (config.gtmEnabled && !config.gtmContainerId.trim()) {
+      if (!config.trackingId.match(/^(G-[A-Z0-9]+|UA-\d+-\d+)$/)) {
         toast({
           title: "Validation Error",
-          description: "GTM Container ID is required when GTM is enabled",
+          description: "Please enter a valid tracking ID (G-XXXXXXXXXX or UA-XXXXXXXX-X)",
           variant: "destructive",
         })
         return
       }
 
-      await api("/api/admin/settings/analytics", {
-        method: "POST",
-        body: JSON.stringify(config),
-      })
-
-      toast({
-        title: "Success",
-        description: "Analytics configuration saved successfully",
-      })
-    } catch (error) {
-      console.error("Error saving analytics config:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save analytics configuration",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const testConnection = async () => {
-    try {
-      setTestingConnection(true)
-
-      if (!config.ga4MeasurementId.trim()) {
-        toast({
-          title: "Test Failed",
-          description: "Please enter a GA4 Measurement ID to test",
-          variant: "destructive",
-        })
-        return
-      }
-
-      const response = await api("/api/admin/settings/analytics/test", {
-        method: "POST",
-        body: JSON.stringify({ measurementId: config.ga4MeasurementId }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        toast({
-          title: "Connection Successful",
-          description: "Google Analytics connection is working properly",
+      let response
+      if (hasExistingConfig && config.id) {
+        // Update existing config
+        response = await api(`/api/admin/ga-config/${config.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ trackingId: config.trackingId }),
         })
       } else {
+        // Create new config
+        response = await api("/api/admin/ga-config", {
+          method: "POST",
+          body: JSON.stringify({ trackingId: config.trackingId }),
+        })
+      }
+
+      if (response.ok) {
+        const data = await response.json()
+        setConfig(data)
+        setHasExistingConfig(true)
+
         toast({
-          title: "Connection Failed",
-          description: result.message || "Unable to connect to Google Analytics",
-          variant: "destructive",
+          title: "Success",
+          description: "Google Analytics configuration saved successfully",
         })
       }
     } catch (error) {
-      console.error("Error testing connection:", error)
+      console.error("Error saving GA config:", error)
       toast({
-        title: "Test Failed",
-        description: "Failed to test Google Analytics connection",
+        title: "Error",
+        description: "Failed to save Google Analytics configuration",
         variant: "destructive",
       })
     } finally {
-      setTestingConnection(false)
+      setSaving(false)
     }
   }
 
-  const updateConfig = (key: keyof AnalyticsConfig, value: any) => {
-    setConfig((prev) => ({ ...prev, [key]: value }))
+  const handleTrackingIdChange = (value: string) => {
+    setConfig((prev) => ({ ...prev, trackingId: value }))
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-6">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
-              <div className="h-8 bg-gray-200 rounded w-64 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </AdminLayout>
+      <Loader />
     )
   }
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-            <span>DASHBOARD / SETTINGS / ANALYTICS</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Google Analytics Configuration</h1>
+  <div className="p-6">
+    {/* Header */}
+    <div className="mb-6">
+      <div className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+        <Link href="/admin/dashboard" className="hover:text-gray-700 dark:hover:text-gray-200">
+          Dashboard
+        </Link>
+        <span className="mx-2">/</span>
+        <Link href="/admin/settings" className="hover:text-gray-700 dark:hover:text-gray-200">
+          Settins
+        </Link>
+        <span className="mx-2">/</span>
+        <span>Analytics</span>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <BarChart3 className="h-6 w-6" />
+            Google Analytics Configuration
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Configure Google Analytics and tracking settings for your website
+            Configure your Google Analytics tracking ID
           </p>
         </div>
+        <Link href="/admin/settings">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 bg-transparent dark:text-white dark:border-gray-600"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Settings
+          </Button>
+        </Link>
+      </div>
+    </div>
 
-        {/* Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <BarChart3 className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">GA4 Status</p>
-                  <div className="flex items-center mt-1">
-                    <Badge variant={config.ga4Enabled ? "default" : "secondary"}>
-                      {config.ga4Enabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
-                </div>
+    {/* Status Card */}
+    <div className="mb-6">
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Analytics Status</p>
+              <p className="text-lg font-bold">
+                {config.trackingId ? (
+                  <span className="text-green-600 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Configured
+                  </span>
+                ) : (
+                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Not Configured
+                  </span>
+                )}
+              </p>
+            </div>
+            {config.trackingId && (
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Tracking ID</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100 font-mono">{config.trackingId}</p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Code className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">GTM Status</p>
-                  <div className="flex items-center mt-1">
-                    <Badge variant={config.gtmEnabled ? "default" : "secondary"}>
-                      {config.gtmEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    {/* Configuration Form */}
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <CardHeader>
+        <CardTitle className="text-gray-900 dark:text-white">Tracking Configuration</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="tracking-id" className="dark:text-white">Google Analytics Tracking ID *</Label>
+            <Input
+              id="tracking-id"
+              value={config.trackingId}
+              onChange={(e) => handleTrackingIdChange(e.target.value)}
+              placeholder="G-XXXXXXXXXX or UA-XXXXXXXX-X"
+              className="font-mono dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Enter your Google Analytics tracking ID. You can find this in your GA property settings.
+            </p>
+          </div>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <ShoppingCart className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Enhanced Ecommerce</p>
-                  <div className="flex items-center mt-1">
-                    <Badge variant={config.enhancedEcommerceEnabled ? "default" : "secondary"}>
-                      {config.enhancedEcommerceEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <Alert className="dark:bg-gray-700 dark:text-white">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Supported formats:</strong>
+              <br />• GA4: G-XXXXXXXXXX (recommended)
+              <br />• Universal Analytics: UA-XXXXXXXX-X (legacy)
+            </AlertDescription>
+          </Alert>
+
+          {config.trackingId && (
+            <Alert className="dark:bg-gray-700 dark:text-white">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                Your tracking ID will be automatically included in all pages to start collecting analytics data.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
-        <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="basic">Basic Setup</TabsTrigger>
-            <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
-          </TabsList>
-
-          {/* Basic Setup Tab */}
-          <TabsContent value="basic" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Google Analytics 4 (GA4)
-                </CardTitle>
-                <CardDescription>Configure your Google Analytics 4 property for website tracking</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Enable Google Analytics 4</Label>
-                    <p className="text-sm text-gray-500">Track website visitors and behavior</p>
-                  </div>
-                  <Switch
-                    checked={config.ga4Enabled}
-                    onCheckedChange={(checked) => updateConfig("ga4Enabled", checked)}
-                  />
-                </div>
-
-                {config.ga4Enabled && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="ga4MeasurementId">GA4 Measurement ID</Label>
-                      <div className="flex space-x-2">
-                        <Input
-                          id="ga4MeasurementId"
-                          placeholder="G-XXXXXXXXXX"
-                          value={config.ga4MeasurementId}
-                          onChange={(e) => updateConfig("ga4MeasurementId", e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={testConnection}
-                          disabled={testingConnection || !config.ga4MeasurementId.trim()}
-                        >
-                          {testingConnection ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test"}
-                        </Button>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Find this in your GA4 property settings under "Data Streams"
-                      </p>
-                    </div>
-
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertDescription>
-                        Make sure to create a GA4 property in your Google Analytics account and copy the Measurement ID
-                        here.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Code className="h-5 w-5 mr-2" />
-                  Google Tag Manager (GTM)
-                </CardTitle>
-                <CardDescription>Manage all your tracking codes through Google Tag Manager</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Enable Google Tag Manager</Label>
-                    <p className="text-sm text-gray-500">Centralized tag management system</p>
-                  </div>
-                  <Switch
-                    checked={config.gtmEnabled}
-                    onCheckedChange={(checked) => updateConfig("gtmEnabled", checked)}
-                  />
-                </div>
-
-                {config.gtmEnabled && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="gtmContainerId">GTM Container ID</Label>
-                      <Input
-                        id="gtmContainerId"
-                        placeholder="GTM-XXXXXXX"
-                        value={config.gtmContainerId}
-                        onChange={(e) => updateConfig("gtmContainerId", e.target.value)}
-                      />
-                      <p className="text-sm text-gray-500">Find this in your Google Tag Manager account</p>
-                    </div>
-
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        When GTM is enabled, make sure to configure your GA4 tag within GTM to avoid duplicate tracking.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* E-commerce Tab */}
-          <TabsContent value="ecommerce" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <ShoppingCart className="h-5 w-5 mr-2" />
-                  Enhanced E-commerce Tracking
-                </CardTitle>
-                <CardDescription>Track detailed e-commerce interactions and transactions</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Enable Enhanced E-commerce</Label>
-                    <p className="text-sm text-gray-500">Track purchases, product views, and cart interactions</p>
-                  </div>
-                  <Switch
-                    checked={config.enhancedEcommerceEnabled}
-                    onCheckedChange={(checked) => updateConfig("enhancedEcommerceEnabled", checked)}
-                  />
-                </div>
-
-                {config.enhancedEcommerceEnabled && (
-                  <Alert>
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Enhanced E-commerce tracking will automatically capture purchase events, product impressions, and
-                      shopping behavior.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Search className="h-5 w-5 mr-2" />
-                  Site Search Tracking
-                </CardTitle>
-                <CardDescription>Track internal site search queries and results</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Enable Site Search Tracking</Label>
-                    <p className="text-sm text-gray-500">Monitor what users search for on your site</p>
-                  </div>
-                  <Switch
-                    checked={config.siteSearchEnabled}
-                    onCheckedChange={(checked) => updateConfig("siteSearchEnabled", checked)}
-                  />
-                </div>
-
-                {config.siteSearchEnabled && (
-                  <div className="space-y-2">
-                    <Label htmlFor="searchParameter">Search Query Parameter</Label>
-                    <Input
-                      id="searchParameter"
-                      placeholder="q, search, query"
-                      value={config.searchParameter}
-                      onChange={(e) => updateConfig("searchParameter", e.target.value)}
-                    />
-                    <p className="text-sm text-gray-500">
-                      The URL parameter that contains search terms (e.g., "q" for ?q=search+term)
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Advanced Tab */}
-          <TabsContent value="advanced" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  Demographics and Interests
-                </CardTitle>
-                <CardDescription>Enable demographic and interest reporting</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Enable Demographics Reports</Label>
-                    <p className="text-sm text-gray-500">Collect age and gender data from users</p>
-                  </div>
-                  <Switch
-                    checked={config.demographicsEnabled}
-                    onCheckedChange={(checked) => updateConfig("demographicsEnabled", checked)}
-                  />
-                </div>
-
-                {config.demographicsEnabled && (
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      Demographics data is based on users signed into their Google accounts and may not represent all
-                      visitors.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Custom Dimensions & Metrics</CardTitle>
-                <CardDescription>Define custom dimensions and metrics for advanced tracking</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="customDimensions">Custom Dimensions</Label>
-                  <Textarea
-                    id="customDimensions"
-                    placeholder="user_type:premium&#10;page_category:blog&#10;author:john_doe"
-                    value={config.customDimensions}
-                    onChange={(e) => updateConfig("customDimensions", e.target.value)}
-                    rows={4}
-                  />
-                  <p className="text-sm text-gray-500">One per line in format: dimension_name:value</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="customMetrics">Custom Metrics</Label>
-                  <Textarea
-                    id="customMetrics"
-                    placeholder="page_load_time:1.5&#10;scroll_depth:75&#10;engagement_score:8.5"
-                    value={config.customMetrics}
-                    onChange={(e) => updateConfig("customMetrics", e.target.value)}
-                    rows={4}
-                  />
-                  <p className="text-sm text-gray-500">One per line in format: metric_name:value</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Debug & Sampling</CardTitle>
-                <CardDescription>Configure debugging and data sampling settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Debug Mode</Label>
-                    <p className="text-sm text-gray-500">Enable debug mode for testing (development only)</p>
-                  </div>
-                  <Switch
-                    checked={config.debugMode}
-                    onCheckedChange={(checked) => updateConfig("debugMode", checked)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="sampleRate">Sample Rate (%)</Label>
-                  <Input
-                    id="sampleRate"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={config.sampleRate}
-                    onChange={(e) => updateConfig("sampleRate", Number.parseInt(e.target.value) || 100)}
-                  />
-                  <p className="text-sm text-gray-500">Percentage of sessions to track (100% = all sessions)</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Privacy Tab */}
-          <TabsContent value="privacy" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Eye className="h-5 w-5 mr-2" />
-                  Privacy Settings
-                </CardTitle>
-                <CardDescription>Configure privacy and data protection settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Anonymize IP Addresses</Label>
-                    <p className="text-sm text-gray-500">Anonymize visitor IP addresses for privacy compliance</p>
-                  </div>
-                  <Switch
-                    checked={config.anonymizeIp}
-                    onCheckedChange={(checked) => updateConfig("anonymizeIp", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Cookie Consent Required</Label>
-                    <p className="text-sm text-gray-500">Only track users who have given cookie consent</p>
-                  </div>
-                  <Switch
-                    checked={config.cookieConsent}
-                    onCheckedChange={(checked) => updateConfig("cookieConsent", checked)}
-                  />
-                </div>
-
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    These privacy settings help ensure compliance with GDPR, CCPA, and other privacy regulations.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
         {/* Save Button */}
-        <div className="flex justify-end pt-6">
-          <Button onClick={handleSaveConfig} disabled={isSaving} size="lg">
-            {isSaving ? (
+        <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Button
+            onClick={handleSave}
+            disabled={saving || !config.trackingId}
+            className="btn-primary"
+          >
+            {saving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving Configuration...
+                <BarChart3 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
               </>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Save Analytics Configuration
+                {hasExistingConfig ? "Update Configuration" : "Save Configuration"}
               </>
             )}
           </Button>
         </div>
-      </div>
-    </AdminLayout>
+      </CardContent>
+    </Card>
+
+    {/* Help Section */}
+    <Card className="mt-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <CardHeader>
+        <CardTitle className="text-gray-900 dark:text-white">How to find your Tracking ID</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">For Google Analytics 4 (GA4):</h4>
+            <ol className="list-decimal list-inside space-y-1 ml-4">
+              <li>Go to your Google Analytics account</li>
+              <li>Select your property</li>
+              <li>Click on "Admin" (gear icon)</li>
+              <li>Under "Property", click "Data Streams"</li>
+              <li>Click on your web stream</li>
+              <li>Copy the "Measurement ID" (starts with G-)</li>
+            </ol>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">For Universal Analytics (Legacy):</h4>
+            <ol className="list-decimal list-inside space-y-1 ml-4">
+              <li>Go to your Google Analytics account</li>
+              <li>Click on "Admin" (gear icon)</li>
+              <li>Under "Property", click "Property Settings"</li>
+              <li>Copy the "Tracking ID" (starts with UA-)</li>
+            </ol>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+</AdminLayout>
+
   )
 }

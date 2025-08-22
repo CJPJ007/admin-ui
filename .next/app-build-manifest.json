@@ -6,10 +6,15 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/admin/pages/page": [
+    "/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/pages/page.js"
+      "static/chunks/app/loading.js"
+    ],
+    "/admin/dashboard/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/dashboard/page.js"
     ],
     "/login/layout": [
       "static/chunks/webpack.js",
@@ -21,35 +26,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/login/page.js"
     ],
-    "/admin/dashboard/page": [
+    "/admin/administration/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/dashboard/page.js"
-    ],
-    "/admin/properties/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/properties/page.js"
+      "static/chunks/app/admin/administration/page.js"
     ],
     "/admin/settings/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/admin/settings/page.js"
     ],
-    "/admin/client-stories/page": [
+    "/admin/faqs/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/client-stories/page.js"
-    ],
-    "/admin/media/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/media/page.js"
-    ],
-    "/admin/administration/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/administration/page.js"
+      "static/chunks/app/admin/faqs/page.js"
     ],
     "/admin/cache-management/loading": [
       "static/chunks/webpack.js",
@@ -61,15 +51,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/admin/cache-management/page.js"
     ],
-    "/admin/inquiries/page": [
+    "/admin/activity/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/inquiries/page.js"
+      "static/chunks/app/admin/activity/loading.js"
     ],
-    "/admin/gallery-videos/page": [
+    "/admin/activity/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/gallery-videos/page.js"
+      "static/chunks/app/admin/activity/page.js"
     ],
     "/admin/customers/loading": [
       "static/chunks/webpack.js",
@@ -80,11 +70,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/admin/customers/page.js"
-    ],
-    "/admin/sliders/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/sliders/page.js"
     ],
     "/admin/notifications/page": [
       "static/chunks/webpack.js",
@@ -101,10 +86,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/admin/internationlization/page.js"
     ],
-    "/page": [
+    "/admin/users/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/admin/users/loading.js"
+    ],
+    "/admin/users/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/users/page.js"
     ]
   }
 }

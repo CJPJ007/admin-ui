@@ -19,6 +19,7 @@ import { convertToSearchCriteriaList } from "@/lib/utils"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
+import { Loader } from "@/components/PageComponentSkeletonLoader"
 
 interface UserInterface {
   id: number
@@ -294,328 +295,348 @@ export default function Customers() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-6 bg-gray-50 min-h-screen">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="h-16 bg-gray-200 rounded mb-6"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </AdminLayout>
+      <Loader />
     )
   }
 
   return (
     <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        {/* Breadcrumb */}
-        <nav className="mb-6">
-          <div className="text-sm tracking-wide">
-            <Link href="/admin/dashboard" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <Link href="/admin/administration" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              System
-            </Link>
-            <span className="mx-2">/</span>
-            <span>Customers</span>
-          </div>
-        </nav>
-
-        {/* Action Bar */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex flex-wrap gap-3">
-
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="h-4 w-4" />
-                  Filters
-                </Button>
-
-                {/* <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
-                  <Plus className="h-4 w-4" />
-                  Create
-                </Button> */}
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    fetchCustomers()
-                    setCurrentPage(1)
-                    setFilters([{ field: "", operator: "equals", value: "" }])
-                    setShowFilters(false)
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reload
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold">Filters</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {filters.map((filter, index) => (
-                <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
-                    <SelectTrigger className="w-40">
-                      <span>{filter.field || "Select field"}</span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="name">Name</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="mobile">Mobile</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
-                    <SelectTrigger className="w-32">
-                      <span>{filter.operator || "Operator"}</span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="equals">Is equal to</SelectItem>
-                      <SelectItem value="contains">Contains</SelectItem>
-                      <SelectItem value="beginsWith">Begins With</SelectItem>
-                      <SelectItem value="endsWith">Ends With</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => updateFilter(index, "value", e.target.value)}
-                    className="w-48"
-                  />
-
-                  {filters.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFilter(index)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={addFilter}>
-                  Add additional filter
-                </Button>
-                <Button onClick={applyFilters} className="btn-primary">
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Customers Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedCustomers.length === customers.length && customers.length > 0}
-                    onChange={handleSelectAll}
-                    className="rounded border-gray-300"
-                  />
-                </TableHead>
-                <TableHead>CUSTOMERNAME</TableHead>
-                <TableHead>EMAIL</TableHead>
-                <TableHead>MOBILE</TableHead>
-                <TableHead>AVATAR</TableHead>
-                <TableHead className="w-32">OPERATIONS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {customers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={selectedCustomers.includes(customer.id)}
-                      onChange={() => handleUserSelect(customer.id)}
-                      className="rounded border-gray-300"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium text-blue-600 cursor-pointer"
-                    onClick={() => handleEditWithUrl(customer)}>{customer.name}</TableCell>
-                  <TableCell>{customer.email}</TableCell>
-                  <TableCell>
-                    {customer.mobile}
-                  </TableCell>
-                  <TableCell>
-                    <Image
-                      src={
-                        `${customer.avatar}` ||
-                        "/placeholder.svg?height=40&width=40"
-                      }
-                      alt={customer.name}
-                      className="w-10 h-10 rounded object-cover"
-                      width={2.5}
-                      height={2.5}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEditWithUrl(customer)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(customer.id)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {customers.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-gray-500">
-                    No customers found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 border-t">
-            <div className="text-sm text-gray-600">
-              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              })}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </Card>
+  <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
+    {/* Breadcrumb */}
+    <nav className="mb-6">
+      <div className="text-sm tracking-wide">
+        <Link
+          href="/admin/dashboard"
+          className="p-0 h-auto text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+        >
+          Dashboard
+        </Link>
+        <span className="mx-2">/</span>
+        <Link
+          href="/admin/administration"
+          className="p-0 h-auto text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+        >
+          System
+        </Link>
+        <span className="mx-2">/</span>
+        <span>Customers</span>
       </div>
+    </nav>
 
-      {/* Create User Modal */}
-      <Dialog open={showCreateModal} onOpenChange={(open) => {
-          if (!open) handleCloseModal()
-          else setShowCreateModal(true)
-        }}>
-        <DialogContent className="max-w-2xl bg-white">
-          <DialogHeader>
-            <DialogTitle>{isEditing?"Update User":"Create New User"}</DialogTitle>
-          </DialogHeader>
+    {/* Action Bar */}
+    <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter full name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchCustomers()
+                setCurrentPage(1)
+                setFilters([{ field: "", operator: "equals", value: "" }])
+                setShowFilters(false)
+              }}
+              className="flex items-center gap-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reload
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Filters Panel */}
+    {showFilters && (
+      <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-base font-semibold">Filters</CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex gap-3 mb-3 items-center">
+              <Select
+                value={filter.field}
+                onValueChange={(value) => updateFilter(index, "field", value)}
+              >
+                <SelectTrigger className="w-40 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200">
+                  <span>{filter.field || "Select field"}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="mobile">Mobile</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filter.operator}
+                onValueChange={(value) => updateFilter(index, "operator", value)}
+              >
+                <SelectTrigger className="w-32 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200">
+                  <span>{filter.operator || "Operator"}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <SelectItem value="equals">Is equal to</SelectItem>
+                  <SelectItem value="contains">Contains</SelectItem>
+                  <SelectItem value="beginsWith">Begins With</SelectItem>
+                  <SelectItem value="endsWith">Ends With</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) => updateFilter(index, "value", e.target.value)}
+                className="w-48 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+              />
+
+              {filters.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeFilter(index)}
+                  className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-500 hover:bg-red-50 dark:hover:bg-red-900"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
+          ))}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Mobile</Label>
-                <Input
-                  id="phone"
-                  placeholder="Enter phone number"
-                  value={formData.mobile}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Avatar *</Label>
-                 <Input
-                  id="avatar"
-                  placeholder="Enter avatar url"
-                  value={formData.avatar}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
+          <div className="flex gap-3 mt-4">
+            <Button variant="outline" onClick={addFilter}>
+              Add additional filter
+            </Button>
+            <Button onClick={applyFilters} className="btn-primary">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseModal}>
-                Cancel
+    {/* Customers Table */}
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-100 dark:bg-gray-700">
+            <TableHead className="w-12">
+              <input
+                type="checkbox"
+                checked={selectedCustomers.length === customers.length && customers.length > 0}
+                onChange={handleSelectAll}
+                className="rounded border-gray-300 dark:border-gray-600"
+              />
+            </TableHead>
+            <TableHead>CUSTOMERNAME</TableHead>
+            <TableHead>EMAIL</TableHead>
+            <TableHead>MOBILE</TableHead>
+            <TableHead>AVATAR</TableHead>
+            <TableHead className="w-32">OPERATIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {customers.map((customer) => (
+            <TableRow
+              key={customer.id}
+              className="hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <TableCell>
+                <input
+                  type="checkbox"
+                  checked={selectedCustomers.includes(customer.id)}
+                  onChange={() => handleUserSelect(customer.id)}
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+              </TableCell>
+              <TableCell
+                className="font-medium text-blue-600 dark:text-blue-400 cursor-pointer"
+                onClick={() => handleEditWithUrl(customer)}
+              >
+                {customer.name}
+              </TableCell>
+              <TableCell>{customer.email}</TableCell>
+              <TableCell>{customer.mobile}</TableCell>
+              <TableCell>
+                <Image
+                  src={customer.avatar || "/placeholder.svg?height=40&width=40"}
+                  alt={customer.name}
+                  className="w-10 h-10 rounded object-cover"
+                  width={40}
+                  height={40}
+                />
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditWithUrl(customer)}
+                    className="border-gray-300 dark:border-gray-600"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(customer.id)}
+                    className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-500 hover:bg-red-50 dark:hover:bg-red-900"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {customers.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center text-gray-500 dark:text-gray-400">
+                No customers found
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in{" "}
+          {totalRecords} records
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const page = i + 1
+            return (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
               </Button>
-              <Button type="submit" className="btn-primary">
-                {isEditing?"Update User":"Create User"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+            )
+          })}
 
-    </AdminLayout>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </Card>
+  </div>
+
+  {/* Create User Modal */}
+  <Dialog
+    open={showCreateModal}
+    onOpenChange={(open) => {
+      if (!open) handleCloseModal()
+      else setShowCreateModal(true)
+    }}
+  >
+    <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <DialogHeader>
+        <DialogTitle>
+          {isEditing ? "Update User" : "Create New User"}
+        </DialogTitle>
+      </DialogHeader>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name *</Label>
+            <Input
+              id="name"
+              placeholder="Enter full name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Mobile</Label>
+            <Input
+              id="phone"
+              placeholder="Enter phone number"
+              value={formData.mobile}
+              onChange={handleInputChange}
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="avatar">Avatar *</Label>
+            <Input
+              id="avatar"
+              placeholder="Enter avatar url"
+              value={formData.avatar}
+              onChange={handleInputChange}
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCloseModal}
+            className="border-gray-300 dark:border-gray-600"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" className="btn-primary">
+            {isEditing ? "Update User" : "Create User"}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
+</AdminLayout>
+
   )
 }

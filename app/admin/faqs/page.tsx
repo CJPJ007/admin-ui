@@ -427,85 +427,90 @@ export default function Agents() {
         </Card>
       </div>
 
-      {/* Create/Edit FAQ Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-6xl max-h-[90vh] bg-white overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              {isEditing ? "Edit FAQ" : "Add New FAQ"}
-            </DialogTitle>
-          </DialogHeader>
+     {/* Create/Edit FAQ Modal */}
+<Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+  <DialogContent className="max-w-6xl max-h-[90vh] bg-gray-900 text-gray-100 overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-semibold text-white">
+        {isEditing ? "Edit FAQ" : "Add New FAQ"}
+      </DialogTitle>
+    </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information Section */}
-            <div className="space-y-4">
-              <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Basic Information
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Enter the basic details of the agent
-                </p>
-              </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Basic Information Section */}
+      <div className="space-y-4">
+        <div className="border-b border-gray-700 pb-2">
+          <h3 className="text-lg font-medium text-gray-100">
+            Basic Information
+          </h3>
+          <p className="text-sm text-gray-400">
+            Enter the basic details of the agent
+          </p>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="username"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Question *
-                  </Label>
-                  <Input
-                    id="question"
-                    placeholder="Enter question"
-                    value={formData.question || ""}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full"
-                    type="text"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="answer"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Answer *
-                  </Label>
-                  <Input
-                    id="answer"
-                    placeholder="Enter answer"
-                    value={formData.answer || ""}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full"
-                    type="text"
-                  />
-                </div>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label
+              htmlFor="question"
+              className="text-sm font-medium text-gray-300"
+            >
+              Question *
+            </Label>
+            <Input
+              id="question"
+              placeholder="Enter question"
+              value={formData.question || ""}
+              onChange={handleInputChange}
+              required
+              type="text"
+              className="w-full bg-gray-800 text-white border border-gray-700 placeholder-gray-500 focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
 
-            </div>
+          <div className="space-y-2">
+            <Label
+              htmlFor="answer"
+              className="text-sm font-medium text-gray-300"
+            >
+              Answer *
+            </Label>
+            <Input
+              id="answer"
+              placeholder="Enter answer"
+              value={formData.answer || ""}
+              onChange={handleInputChange}
+              required
+              type="text"
+              className="w-full bg-gray-800 text-white border border-gray-700 placeholder-gray-500 focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" className="btn-primary">
-                {isEditing ? "Update FAQ" : "Add FAQ"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Form Actions */}
+      <div className="flex justify-end gap-3 pt-6 border-t border-gray-700">
+        <Button
+          type="button"
+          variant="outline"
+          className="border-gray-600 text-gray-300 hover:bg-gray-800"
+          onClick={() => {
+            setShowCreateModal(false);
+            resetForm();
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="bg-indigo-600 hover:bg-indigo-500 text-white"
+        >
+          {isEditing ? "Update FAQ" : "Add FAQ"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
     </AdminLayout>
   );
 }

@@ -266,9 +266,35 @@ export default function Media() {
           className={`p-0 h-auto ${currentFolder ? "text-blue-600 hover:text-blue-800" : "text-gray-500"}`}
           onClick={() => setCurrentFolder("/")}
         >
-          Media
+          Media 
         </Button>
-        {currentFolder && <span>{currentFolder}</span>}
+        {currentFolder && currentFolder.split(" /").length > 1 && (
+          currentFolder
+            .split(" /").map((folder, index, arr) => {
+              console.log(folder, index, arr);
+              if (folder === "") return null
+              const isLast = index === arr.length - 2
+              const pathUpToFolder =arr.slice(0, index +1).join(" /") + " /"
+              return (
+                <span key={index} className="inline-flex items-center">
+                  <Button
+                    variant="link"
+                    className={`p-0 h-auto ${isLast ? "text-gray-500" : "text-blue-600 hover:text-blue-800"}`}
+                    onClick={() => {
+                      if (!isLast) {
+                        setCurrentFolder(pathUpToFolder)
+                      }
+                    }}
+                  >
+                    {folder}
+                  </Button>
+                  {!isLast && <span className="mx-2">/</span>}
+                </span>
+              )
+            })
+          // <span className="mx-2">/</span>
+        )}
+        {/* {currentFolder && <span>{currentFolder}</span>} */}
       </div>
     </nav>
   )

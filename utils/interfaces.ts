@@ -38,6 +38,7 @@ export interface Slider {
   title: string;
   subtitle: string;
   imageUrl: string;
+  mobileImageUrl: string;
   linkUrl: string;
   buttonText: string;
   sortOrder: number;

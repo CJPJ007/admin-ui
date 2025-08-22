@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { convertToSearchCriteriaList } from "@/lib/utils"
 import RichTextEditor from "@/components/RichTextEditor"
 import MediaSelector from "@/components/MediaSelector"
+import { Loader } from "@/components/PageComponentSkeletonLoader"
 
 export default function Blogs() {
   const searchParams = useSearchParams()
@@ -235,339 +236,329 @@ export default function Blogs() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-6 bg-gray-50 min-h-screen">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="h-16 bg-gray-200 rounded mb-6"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </AdminLayout>
+      <Loader/>
     )
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-5">Blogs</h1>
+<AdminLayout>
+  <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    {/* Header */}
+    <div className="mb-6">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-5">Blogs</h1>
 
-          {/* Action Bar */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex gap-3 items-center">
+      {/* Action Bar */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardContent className="p-4">
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 dark:text-white dark:border-gray-600"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
+
+            <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
+              <Plus className="h-4 w-4" />
+              Create
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchBlogs()
+                setCurrentPage(1)
+                setFilters([{ field: "", operator: "equals", value: "" }])
+                setShowFilters(false)
+              }}
+              className="flex items-center gap-2 bg-transparent dark:text-white dark:border-gray-600"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reload
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    {/* Filters Panel */}
+    {showFilters && (
+      <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Filters</CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+            <X className="h-4 w-4 dark:text-white" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex gap-3 mb-3 items-center">
+              <Select
+                value={filter.field}
+                onValueChange={(value) => updateFilter(index, "field", value)}
+              >
+                <SelectTrigger className="w-40 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                  <SelectValue placeholder="Select field" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 dark:text-white">
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="slug">Slug</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="metaTitle">Meta Title</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filter.operator}
+                onValueChange={(value) => updateFilter(index, "operator", value)}
+              >
+                <SelectTrigger className="w-32 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                  <SelectValue placeholder="Operator" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 dark:text-white">
+                  <SelectItem value="equals">Is equal to</SelectItem>
+                  <SelectItem value="contains">Contains</SelectItem>
+                  <SelectItem value="beginsWith">Begins With</SelectItem>
+                  <SelectItem value="endsWith">Ends With</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) => updateFilter(index, "value", e.target.value)}
+                className="w-48 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              />
+
+              {filters.length > 1 && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  onClick={() => removeFilter(index)}
+                  className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700"
                 >
-                  <Filter className="h-4 w-4" />
-                  Filters
+                  <Trash2 className="h-4 w-4" />
                 </Button>
+              )}
+            </div>
+          ))}
 
-                <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
-                  <Plus className="h-4 w-4" />
-                  Create
-                </Button>
+          <div className="flex gap-3 mt-4">
+            <Button variant="outline" onClick={addFilter} className="dark:text-white dark:border-gray-600">
+              Add additional filter
+            </Button>
+            <Button onClick={applyFilters} className="btn-primary">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
 
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    fetchBlogs()
-                    setCurrentPage(1)
-                    setFilters([{ field: "", operator: "equals", value: "" }])
-                    setShowFilters(false)
-                  }}
-                  className="flex items-center gap-2 bg-transparent"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reload
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+    {/* Blog List */}
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <CardHeader>
+        <CardTitle className="text-gray-900 dark:text-white">Blogs List</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table className="dark:text-white">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Image</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Published At</TableHead>
+              <TableHead className="w-32">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {blogs.length > 0 ? (
+              blogs.map((blog) => (
+                <TableRow key={blog.id} className="dark:border-gray-700">
+                  <TableCell
+                    className="font-medium text-blue-600 cursor-pointer hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    onClick={() => handleEdit(blog)}
+                  >
+                    {blog.title}
+                  </TableCell>
+                  <TableCell>
+                    <img
+                      src={blog.thumbnailImage ? `/images/${blog.thumbnailImage}` : "/placeholder.svg?height=40&width=40"}
+                      alt={blog.title}
+                      className="w-10 h-10 rounded object-cover"
+                    />
+                  </TableCell>
+                  <TableCell className="text-gray-600 dark:text-gray-300">{blog.slug}</TableCell>
+                  <TableCell>
+                    <Badge className={`${blog.status === "published" ? "bg-green-500" : "bg-yellow-500"} text-white`}>
+                      {blog.status?.toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="dark:text-gray-300">{blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "N/A"}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(blog)} className="dark:text-white dark:border-gray-600">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteBlog(blog.id)}
+                        className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-gray-500 dark:text-gray-400">
+                  No blogs found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
         </div>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold">Filters</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                <X className="h-4 w-4" />
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="dark:text-white dark:border-gray-600"
+          >
+            Previous
+          </Button>
+
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const page = i + 1
+            return (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="dark:text-white dark:border-gray-600"
+              >
+                {page}
               </Button>
-            </CardHeader>
-            <CardContent>
-              {filters.map((filter, index) => (
-                <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select field" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="title">Title</SelectItem>
-                      <SelectItem value="slug">Slug</SelectItem>
-                      <SelectItem value="status">Status</SelectItem>
-                      <SelectItem value="metaTitle">Meta Title</SelectItem>
-                    </SelectContent>
-                  </Select>
+            )
+          })}
 
-                  <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Operator" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="equals">Is equal to</SelectItem>
-                      <SelectItem value="contains">Contains</SelectItem>
-                      <SelectItem value="beginsWith">Begins With</SelectItem>
-                      <SelectItem value="endsWith">Ends With</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="dark:text-white dark:border-gray-600"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </Card>
 
-                  <Input
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => updateFilter(index, "value", e.target.value)}
-                    className="w-48"
-                  />
-
-                  {filters.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFilter(index)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={addFilter}>
-                  Add additional filter
-                </Button>
-                <Button onClick={applyFilters} className="btn-primary">
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Blog List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Blogs List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Published At</TableHead>
-                  <TableHead className="w-32">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {blogs.map((blog) => (
-                  <TableRow key={blog.id}>
-                    <TableCell
-                      className="font-medium text-blue-600 cursor-pointer hover:text-blue-800"
-                      onClick={() => handleEdit(blog)}
-                    >
-                      {blog.title}
-                    </TableCell>
-                    <TableCell>
-                      <img
-                        src={
-                          blog.thumbnailImage ? `/images/${blog.thumbnailImage}` : "/placeholder.svg?height=40&width=40"
-                        }
-                        alt={blog.title}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    </TableCell>
-                    <TableCell className="text-gray-600">{blog.slug}</TableCell>
-                    <TableCell>
-                      <Badge className={`${blog.status === "published" ? "bg-green-500" : "bg-yellow-500"} text-white`}>
-                        {blog.status?.toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "N/A"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(blog)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteBlog(blog.id)}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {blogs.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-gray-500">
-                      No blogs found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 border-t">
-            <div className="text-sm text-gray-600">
-              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
+    {/* Create/Edit Blog Modal */}
+    <Dialog open={showCreateModal} onOpenChange={(open) => (!open ? handleCloseModal() : setShowCreateModal(true))}>
+      <DialogContent className="max-w-6xl max-h-[90vh] bg-white dark:bg-gray-800 overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">{isEditing ? "Edit Blog" : "Add New Blog"}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-gray-900 dark:text-white">Title</Label>
+              <Input id="title" value={formData.title || ""} onChange={handleInputChange} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" required />
             </div>
-
-            <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              })}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="slug" className="text-gray-900 dark:text-white">Slug</Label>
+              <Input
+                id="slug"
+                placeholder="e.g., top-5-tips"
+                value={formData.slug || ""}
+                onChange={handleInputChange}
+                className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                required
+              />
             </div>
           </div>
-        </Card>
 
-        {/* Create/Edit Blog Modal */}
-        <Dialog
-          open={showCreateModal}
-          onOpenChange={(open) => {
-            if (!open) handleCloseModal()
-            else setShowCreateModal(true)
-          }}
-        >
-          <DialogContent className="max-w-6xl max-h-[90vh] bg-white overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold">{isEditing ? "Edit Blog" : "Add New Blog"}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input id="title" value={formData.title || ""} onChange={handleInputChange} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
-                  <Input
-                    id="slug"
-                    placeholder="e.g., top-5-tips"
-                    value={formData.slug || ""}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+          <div className="space-y-2">
+            <Label htmlFor="content" className="text-gray-900 dark:text-white">Content</Label>
+            {isClient && (
+              <div className="bg-white dark:bg-gray-700 rounded-md border dark:border-gray-600">
+                <RichTextEditor onChange={handleRteChange} value={formData.content || ""} />
               </div>
+            )}
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
-                {isClient && (
-                  <div className="bg-white rounded-md border">
-                    <RichTextEditor onChange={handleRteChange} value={formData.content || ""} />
-                  </div>
-                )}
-              </div>
+          {/* Blog Images Section */}
+          <div className="space-y-4">
+            <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Blog Images</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Upload thumbnail image for the blog</p>
+            </div>
 
-              {/* Property Images Section */}
-              <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-2">
-                  <h3 className="text-lg font-medium text-gray-900">Blog Images</h3>
-                  <p className="text-sm text-gray-600">Upload thumbnail image for the blog</p>
-                </div>
+            <div className="grid grid-cols-1 gap-6">
+              <MediaSelector
+                label="Thumbnail Image"
+                value={formData.thumbnailImage}
+                onChange={handleThumbnailChange}
+                multipleUpload={false}
+              />
+            </div>
+          </div>
 
-                <div className="grid grid-cols-1 gap-6">
-                  <MediaSelector
-                    label="Thumbnail Image"
-                    value={formData.thumbnailImage}
-                    onChange={handleThumbnailChange}
-                    multipleUpload={false}
-                  />
-                </div>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="status" className="text-gray-900 dark:text-white">Status</Label>
+            <Select value={formData.status || "draft"} onValueChange={handleSelectChange}>
+              <SelectTrigger className="dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-700 dark:text-white">
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status || "draft"} onValueChange={handleSelectChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">SEO Tags</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Add/Update below tags for the SEO</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="metaTitle" className="text-gray-900 dark:text-white">Meta Title</Label>
+              <Input id="metaTitle" value={formData.metaTitle || ""} onChange={handleInputChange} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="metaDescription" className="text-gray-900 dark:text-white">Meta Description</Label>
+              <Input id="metaDescription" value={formData.metaDescription || ""} onChange={handleInputChange} className="dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+            </div>
+          </div>
 
-              <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">SEO Tags</h3>
-                <p className="text-sm text-gray-600">Add/Update below tags for the SEO</p>
-              </div>
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="metaTitle">Meta Title</Label>
-                    <Input id="metaTitle" value={formData.metaTitle || ""} onChange={handleInputChange} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="metaDescription">Meta Description</Label>
-                    <Input id="metaDescription" value={formData.metaDescription || ""} onChange={handleInputChange} />
-                  </div>
-                </div>
-              </div>
+          <div className="flex gap-3 pt-4">
+            <Button type="submit" className="btn-primary">{isEditing ? "Update Blog" : "Add Blog"}</Button>
+            <Button type="button" variant="outline" onClick={handleCloseModal} className="dark:text-white dark:border-gray-600">Cancel</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  </div>
+</AdminLayout>
 
-              <div className="flex gap-3 pt-4">
-                <Button type="submit" className="btn-primary">
-                  {isEditing ? "Update Blog" : "Add Blog"}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleCloseModal}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AdminLayout>
   )
 }

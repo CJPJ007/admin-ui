@@ -20,6 +20,7 @@ import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { Textarea } from "@/components/ui/textarea"
+import { Loader } from "@/components/PageComponentSkeletonLoader"
 
 
 export default function Inquiries() {
@@ -228,331 +229,318 @@ export default function Inquiries() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-6 bg-gray-50 min-h-screen">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="h-16 bg-gray-200 rounded mb-6"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </AdminLayout>
+      <Loader/>
     )
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        {/* Breadcrumb */}
-        <nav className="mb-6">
-          <div className="text-sm tracking-wide">
-            <Link href="/admin/dashboard" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <span>Inquiries</span>
-          </div>
-        </nav>
-
-        {/* Action Bar */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex flex-wrap gap-3">
-
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="h-4 w-4" />
-                  Filters
-                </Button>
-
-                {/* <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
-                  <Plus className="h-4 w-4" />
-                  Create
-                </Button> */}
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    fetchInquiries()
-                    setCurrentPage(1)
-                    setFilters([{ field: "", operator: "equals", value: "" }])
-                    setShowFilters(false)
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reload
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold">Filters</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {filters.map((filter, index) => (
-                <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
-                    <SelectTrigger className="w-40">
-                      <span>{filter.field || "Select field"}</span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="name">Name</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="mobile">Mobile</SelectItem>
-                      <SelectItem value="property">Property</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
-                    <SelectTrigger className="w-32">
-                      <span>{filter.operator || "Operator"}</span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="equals">Is equal to</SelectItem>
-                      <SelectItem value="contains">Contains</SelectItem>
-                      <SelectItem value="beginsWith">Begins With</SelectItem>
-                      <SelectItem value="endsWith">Ends With</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => updateFilter(index, "value", e.target.value)}
-                    className="w-48"
-                  />
-
-                  {filters.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFilter(index)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={addFilter}>
-                  Add additional filter
-                </Button>
-                <Button onClick={applyFilters} className="btn-primary">
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Inquiries Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedCustomers.length === inquiries.length && inquiries.length > 0}
-                    onChange={handleSelectAll}
-                    className="rounded border-gray-300"
-                  />
-                </TableHead>
-                <TableHead>CUSTOMERNAME</TableHead>
-                <TableHead>EMAIL</TableHead>
-                <TableHead>MOBILE</TableHead>
-                <TableHead>PROPERY</TableHead>
-                <TableHead>APPOINTMENT DATE</TableHead>
-                <TableHead className="w-32">OPERATIONS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inquiries.map((inquiry) => (
-                <TableRow key={inquiry.id}>
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={selectedCustomers.includes(inquiry.id)}
-                      onChange={() => handleUserSelect(inquiry.id)}
-                      className="rounded border-gray-300"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium text-blue-600 cursor-pointer"
-                    onClick={() => handleEditWithUrl(inquiry)}>{inquiry.name}</TableCell>
-                  <TableCell>{inquiry.email}</TableCell>
-                  <TableCell>
-                    {inquiry.mobile || 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    {inquiry.property || 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    {inquiry.appointmentDate || 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEditWithUrl(inquiry)}>
-                        <View className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(inquiry.id)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {inquiries.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-gray-500">
-                    No inquiries found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 border-t">
-            <div className="text-sm text-gray-600">
-              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              })}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </Card>
+<AdminLayout>
+  <div className="p-6 bg-gray-50 min-h-screen dark:bg-gray-900">
+    {/* Breadcrumb */}
+    <nav className="mb-6">
+      <div className="text-sm tracking-wide">
+        <Link
+          href="/admin/dashboard"
+          className="p-0 h-auto text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          Dashboard
+        </Link>
+        <span className="mx-2 text-gray-600 dark:text-gray-400">/</span>
+        <span className="text-gray-900 dark:text-gray-200">Inquiries</span>
       </div>
+    </nav>
 
-      {/* Create User Modal */}
-      <Dialog open={showCreateModal} onOpenChange={(open) => {
-          if (!open) handleCloseModal()
-          else setShowCreateModal(true)
-        }}>
-        <DialogContent className="max-w-2xl bg-white">
-          <DialogHeader>
-            <DialogTitle>View Inquiry</DialogTitle>
-          </DialogHeader>
+    {/* Action Bar */}
+    <Card className="mb-6 bg-white dark:bg-gray-800 dark:border-gray-700">
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-200"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
 
-          <form className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  disabled
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  disabled
-                />
-              </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchInquiries();
+                setCurrentPage(1);
+                setFilters([{ field: "", operator: "equals", value: "" }]);
+                setShowFilters(false);
+              }}
+              className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reload
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Filters Panel */}
+    {showFilters && (
+      <Card className="mb-6 bg-white dark:bg-gray-800 dark:border-gray-700">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Filters
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex gap-3 mb-3 items-center">
+              <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
+                <SelectTrigger className="w-40 dark:border-gray-600 dark:text-gray-200">
+                  <span>{filter.field || "Select field"}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 dark:text-gray-200">
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="mobile">Mobile</SelectItem>
+                  <SelectItem value="property">Property</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
+                <SelectTrigger className="w-32 dark:border-gray-600 dark:text-gray-200">
+                  <span>{filter.operator || "Operator"}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 dark:text-gray-200">
+                  <SelectItem value="equals">Is equal to</SelectItem>
+                  <SelectItem value="contains">Contains</SelectItem>
+                  <SelectItem value="beginsWith">Begins With</SelectItem>
+                  <SelectItem value="endsWith">Ends With</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) => updateFilter(index, "value", e.target.value)}
+                className="w-48 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              />
+
+              {filters.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeFilter(index)}
+                  className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-400 dark:hover:bg-red-900"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
+          ))}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Mobile</Label>
-                <Input
-                  id="phone"
-                  value={formData.mobile || 'N/A'}
-                  disabled
-                  />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Property *</Label>
-                 <Input
-                  id="property"
-                  value={formData.property || 'N/A'}
-                  disabled
-/>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">AppointmentDate *</Label>
-                 <Input
-                  id="appointmentDate"
-                  value={formData.appointmentDate || 'N/A'}
-                  disabled
-/>
-              </div>
-              
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="role">Message *</Label>
-                 <Textarea
-                  id="message"
-                  value={formData.message || 'N/A'}
-                  disabled
-/>
-              </div>
+          <div className="flex gap-3 mt-4">
+            <Button variant="outline" onClick={addFilter} className="dark:border-gray-600 dark:text-gray-200">
+              Add additional filter
+            </Button>
+            <Button onClick={applyFilters} className="btn-primary">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseModal}>
-                Cancel
+    {/* Inquiries Table */}
+    <Card className="bg-white dark:bg-gray-800 dark:border-gray-700">
+      <Table>
+        <TableHeader className="bg-gray-100 dark:bg-gray-700">
+          <TableRow>
+            <TableHead className="w-12 text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={selectedCustomers.length === inquiries.length && inquiries.length > 0}
+                onChange={handleSelectAll}
+                className="rounded border-gray-300 dark:border-gray-600"
+              />
+            </TableHead>
+            <TableHead className="text-gray-700 dark:text-gray-300">CUSTOMER NAME</TableHead>
+            <TableHead className="text-gray-700 dark:text-gray-300">EMAIL</TableHead>
+            <TableHead className="text-gray-700 dark:text-gray-300">MOBILE</TableHead>
+            <TableHead className="text-gray-700 dark:text-gray-300">PROPERTY</TableHead>
+            <TableHead className="text-gray-700 dark:text-gray-300">APPOINTMENT DATE</TableHead>
+            <TableHead className="w-32 text-gray-700 dark:text-gray-300">OPERATIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {inquiries.map((inquiry) => (
+            <TableRow key={inquiry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+              <TableCell>
+                <input
+                  type="checkbox"
+                  checked={selectedCustomers.includes(inquiry.id)}
+                  onChange={() => handleUserSelect(inquiry.id)}
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+              </TableCell>
+              <TableCell
+                className="font-medium text-blue-600 cursor-pointer dark:text-blue-400"
+                onClick={() => handleEditWithUrl(inquiry)}
+              >
+                {inquiry.name}
+              </TableCell>
+              <TableCell className="dark:text-gray-200">{inquiry.email}</TableCell>
+              <TableCell className="dark:text-gray-200">{inquiry.mobile || "N/A"}</TableCell>
+              <TableCell className="dark:text-gray-200">{inquiry.property || "N/A"}</TableCell>
+              <TableCell className="dark:text-gray-200">{inquiry.appointmentDate || "N/A"}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEditWithUrl(inquiry)}>
+                    <View className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(inquiry.id)}
+                    className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-400 dark:hover:bg-red-900"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {inquiries.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center text-gray-500 dark:text-gray-400">
+                No inquiries found
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center p-4 border-t dark:border-gray-700">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="dark:border-gray-600 dark:text-gray-200"
+          >
+            Previous
+          </Button>
+
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const page = i + 1;
+            return (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="dark:border-gray-600 dark:text-gray-200"
+              >
+                {page}
               </Button>
-              {/* <Button type="submit" className="btn-primary">
-                {isEditing?"Update User":"Create User"}
-              </Button> */}
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+            );
+          })}
 
-    </AdminLayout>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="dark:border-gray-600 dark:text-gray-200"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </Card>
+  </div>
+
+  {/* View Inquiry Modal */}
+  <Dialog
+    open={showCreateModal}
+    onOpenChange={(open) => {
+      if (!open) handleCloseModal();
+      else setShowCreateModal(true);
+    }}
+  >
+    <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 dark:text-gray-200">
+      <DialogHeader>
+        <DialogTitle className="dark:text-gray-100">View Inquiry</DialogTitle>
+      </DialogHeader>
+
+      <form className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name *</Label>
+            <Input id="name" value={formData.name} disabled className="dark:bg-gray-700 dark:border-gray-600" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email *</Label>
+            <Input id="email" type="email" value={formData.email} disabled className="dark:bg-gray-700 dark:border-gray-600" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Mobile</Label>
+            <Input
+              id="phone"
+              value={formData.mobile || "N/A"}
+              disabled
+              className="dark:bg-gray-700 dark:border-gray-600"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="property">Property *</Label>
+            <Input
+              id="property"
+              value={formData.property || "N/A"}
+              disabled
+              className="dark:bg-gray-700 dark:border-gray-600"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="appointmentDate">Appointment Date *</Label>
+            <Input
+              id="appointmentDate"
+              value={formData.appointmentDate || "N/A"}
+              disabled
+              className="dark:bg-gray-700 dark:border-gray-600"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="message">Message *</Label>
+          <Textarea
+            id="message"
+            value={formData.message || "N/A"}
+            disabled
+            className="dark:bg-gray-700 dark:border-gray-600"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={handleCloseModal} className="dark:border-gray-600 dark:text-gray-200">
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
+</AdminLayout>
+
   )
 }

@@ -388,279 +388,313 @@ export default function Properties() {
 
   return (
     <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        {/* Breadcrumb */}
-        <nav className="mb-6">
-          <div className="text-sm tracking-wide">
-            <Link href="/admin/dashboard" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <span>Properties</span>
+  <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
+    {/* Breadcrumb */}
+    <nav className="mb-6">
+      <div className="text-sm tracking-wide text-gray-700 dark:text-gray-300">
+        <Link
+          href="/admin/dashboard"
+          className="p-0 h-auto text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          Dashboard
+        </Link>
+        <span className="mx-2">/</span>
+        <span>Properties</span>
+      </div>
+    </nav>
+
+    {/* Header */}
+    <div className="mb-6">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-5">
+        Properties
+      </h1>
+
+      {/* Action Bar */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-200"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
+
+            <Button
+              onClick={handleCreateWithUrl}
+              className="flex items-center gap-2 btn-primary"
+            >
+              <Plus className="h-4 w-4" />
+              Create
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleReload}
+              disabled={reloading}
+              className="flex items-center gap-2 btn-primary dark:border-gray-600 dark:text-gray-200"
+            >
+              {reloading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4" />
+              )}
+              {reloading ? "Loading..." : "Reload"}
+            </Button>
           </div>
-        </nav>
+        </CardContent>
+      </Card>
+    </div>
 
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-5">Properties</h1>
+    {/* Filters Panel */}
+    {showFilters && (
+      <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Filters
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowFilters(false)}
+            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex gap-3 mb-3 items-center">
+              <Select
+                value={filter.field}
+                onValueChange={(value) => updateFilter(index, "field", value)}
+              >
+                <SelectTrigger className="w-40 dark:bg-gray-900 dark:border-gray-600">
+                  <SelectValue placeholder="Select field" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800">
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="type">Type</SelectItem>
+                  <SelectItem value="location">Location</SelectItem>
+                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="sold">Sold</SelectItem>
+                </SelectContent>
+              </Select>
 
-          {/* Action Bar */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex gap-3 items-center">
+              <Select
+                value={filter.operator}
+                onValueChange={(value) =>
+                  updateFilter(index, "operator", value)
+                }
+              >
+                <SelectTrigger className="w-32 dark:bg-gray-900 dark:border-gray-600">
+                  <SelectValue placeholder="Operator" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800">
+                  <SelectItem value="equals">Is equal to</SelectItem>
+                  <SelectItem value="contains">Contains</SelectItem>
+                  <SelectItem value="beginsWith">Begins With</SelectItem>
+                  <SelectItem value="endsWith">Ends With</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) => updateFilter(index, "value", e.target.value)}
+                className="w-48 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+              />
+
+              {filters.length > 1 && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  onClick={() => removeFilter(index)}
+                  className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
                 >
-                  <Filter className="h-4 w-4" />
-                  Filters
+                  <Trash2 className="h-4 w-4" />
                 </Button>
+              )}
+            </div>
+          ))}
 
-                <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
-                  <Plus className="h-4 w-4" />
-                  Create
-                </Button>
+          <div className="flex gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={addFilter}
+              className="dark:border-gray-600 dark:text-gray-200"
+            >
+              Add additional filter
+            </Button>
+            <Button onClick={applyFilters} className="btn-primary">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
 
-                <Button
-                  variant="outline"
-                  onClick={handleReload}
-                  disabled={reloading}
-                  className="flex items-center gap-2 btn-primary"
+    {/* Properties Table */}
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <Table>
+        <TableHeader className="bg-gray-100 dark:bg-gray-700">
+          <TableRow>
+            <TableHead className="w-16">ID</TableHead>
+            <TableHead className="w-20">IMAGE</TableHead>
+            <TableHead>PROPERTIES</TableHead>
+            <TableHead>PRICE</TableHead>
+            <TableHead>STATUS</TableHead>
+            <TableHead>TYPE</TableHead>
+            <TableHead>LOCATION</TableHead>
+            <TableHead className="w-32">OPERATIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {properties.map((property) => (
+            <TableRow
+              key={property.id}
+              className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            >
+              <TableCell className="font-medium">{property.id}</TableCell>
+              <TableCell>
+                <img
+                  src={
+                    `/images/${property.thumbnailImage}` ||
+                    "/placeholder.svg?height=40&width=40"
+                  }
+                  alt={property.title}
+                  className="w-10 h-10 rounded object-cover"
+                />
+              </TableCell>
+              <TableCell>
+                <div>
+                  <div
+                    className="font-medium text-blue-600 cursor-pointer hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    onClick={() => handleEdit(property)}
+                  >
+                    {property.title}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {property.bedrooms} bed, {property.bathrooms} bath
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell className="font-semibold">
+                {property.price.toLocaleString()} INR
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={property.sold ? "destructive" : "default"}
+                  className="dark:bg-gray-600"
                 >
-                  {reloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                  {reloading ? "Loading..." : "Reload"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  {property.sold ? "Sold" : "Available"}
+                </Badge>
+              </TableCell>
+              <TableCell>{property.type}</TableCell>
+              <TableCell>{property.location}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(property)}
+                    className="dark:border-gray-600 dark:text-gray-200"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(property.id)}
+                    className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {properties.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={8}
+                className="text-center text-gray-500 dark:text-gray-400"
+              >
+                No properties found
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in{" "}
+          {totalRecords} records
         </div>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold">Filters</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {filters.map((filter, index) => (
-                <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select field" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="title" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Title
-                      </SelectItem>
-                      <SelectItem value="type" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Type
-                      </SelectItem>
-                      <SelectItem value="location" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Location
-                      </SelectItem>
-                      <SelectItem value="price" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Price
-                      </SelectItem>
-                      <SelectItem value="featured" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Featured
-                      </SelectItem>
-                      <SelectItem value="sold" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Sold
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="btn-primary dark:border-gray-600 dark:text-gray-200"
+          >
+            Previous
+          </Button>
 
-                  <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Operator" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="equals" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Is equal to
-                      </SelectItem>
-                      <SelectItem value="contains" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Contains
-                      </SelectItem>
-                      <SelectItem value="beginsWith" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Begins With
-                      </SelectItem>
-                      <SelectItem value="endsWith" className="hover:bg-gray-100 hover:cursor-pointer">
-                        Ends With
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => updateFilter(index, "value", e.target.value)}
-                    className="w-48"
-                  />
-
-                  {filters.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFilter(index)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={addFilter}>
-                  Add additional filter
-                </Button>
-                <Button onClick={applyFilters} className="btn-primary">
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Properties Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">ID</TableHead>
-                <TableHead className="w-20">IMAGE</TableHead>
-                <TableHead>PROPERTIES</TableHead>
-                <TableHead>PRICE</TableHead>
-                <TableHead>STATUS</TableHead>
-                <TableHead>TYPE</TableHead>
-                <TableHead>LOCATION</TableHead>
-                <TableHead className="w-32">OPERATIONS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {properties.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell className="font-medium">{property.id}</TableCell>
-                  <TableCell>
-                    <img
-                      src={`/images/${property.thumbnailImage}` || "/placeholder.svg?height=40&width=40"}
-                      alt={property.title}
-                      className="w-10 h-10 rounded object-cover"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div
-                        className="font-medium text-blue-600 cursor-pointer hover:text-blue-800"
-                        onClick={() => handleEdit(property)}
-                      >
-                        {property.title}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {property.bedrooms} bed, {property.bathrooms} bath
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-semibold">{property.price.toLocaleString()} INR</TableCell>
-                  <TableCell>
-                    <Badge variant={property.sold ? "destructive" : "default"}>
-                      {property.sold ? "Sold" : "Available"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{property.type}</TableCell>
-                  <TableCell>{property.location}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(property)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(property.id)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {properties.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-gray-500">
-                    No properties found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 border-t">
-            <div className="text-sm text-gray-600">
-              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
-            </div>
-
-            <div className="flex gap-2 items-center">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const page = i + 1
+            return (
               <Button
-                variant="outline"
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
                 size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="btn-primary"
+                onClick={() => setCurrentPage(page)}
+                className="dark:border-gray-600 dark:text-gray-200"
               >
-                Previous
+                {page}
               </Button>
+            )
+          })}
 
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              })}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="btn-primary"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </Card>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
+            disabled={currentPage === totalPages}
+            className="btn-primary dark:border-gray-600 dark:text-gray-200"
+          >
+            Next
+          </Button>
+        </div>
       </div>
+    </Card>
 
-      {/* Create/Edit Modal */}
-      <Dialog
-        open={showCreateModal}
-        onOpenChange={(open) => {
-          if (!open) handleCloseModal()
-          else setShowCreateModal(true)
-        }}
-      >
-        <DialogContent className="max-w-6xl max-h-[90vh] bg-white overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              {isEditing ? "Edit Property" : "Create Property"}
-            </DialogTitle>
-          </DialogHeader>
+    {/* Dialog modal also updated with dark mode */}
+    <Dialog
+      open={showCreateModal}
+      onOpenChange={(open) => {
+        if (!open) handleCloseModal()
+        else setShowCreateModal(true)
+      }}
+    >
+      <DialogContent className="max-w-6xl max-h-[90vh] bg-white dark:bg-gray-900 overflow-y-auto border border-gray-200 dark:border-gray-700">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {isEditing ? "Edit Property" : "Create Property"}
+          </DialogTitle>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+        {/* ...rest of the form remains same, just add dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200 to inputs, labels, selects */}
+        <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
@@ -670,7 +704,7 @@ export default function Properties() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Property Title *
                   </Label>
                   <Input
@@ -679,11 +713,11 @@ export default function Properties() {
                     value={formData.title}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="price" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Price (INR) *
                   </Label>
                   <Input
@@ -693,11 +727,11 @@ export default function Properties() {
                     value={formData.price}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cents" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="cents" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Cents
                   </Label>
                   <Input
@@ -706,13 +740,13 @@ export default function Properties() {
                     placeholder="Cents"
                     value={formData.cents}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                   Description *
                 </Label>
                 {/* <Input
@@ -730,13 +764,13 @@ export default function Properties() {
             {/* Property Details Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">Property Details</h3>
-                <p className="text-sm text-gray-600">Specify the property characteristics and location</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Property Details</h3>
+                <p className="text-sm text-gray-600 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Specify the property characteristics and location</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Location *
                   </Label>
                   <Input
@@ -745,18 +779,18 @@ export default function Properties() {
                     value={formData.location}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="type" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Property Type *
                   </Label>
                   <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectValue placeholder="Select property type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent className="bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectItem value="Apartment">Apartment</SelectItem>
                       <SelectItem value="Villa">Villa</SelectItem>
                       <SelectItem value="Condo">Condo</SelectItem>
@@ -767,7 +801,7 @@ export default function Properties() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pinCode" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="pinCode" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Pin Code *
                   </Label>
                   <Input
@@ -776,14 +810,14 @@ export default function Properties() {
                     value={formData.pinCode}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bedrooms" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="bedrooms" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Bedrooms
                   </Label>
                   <Input
@@ -792,11 +826,11 @@ export default function Properties() {
                     placeholder="Number of bedrooms"
                     value={formData.bedrooms}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bathrooms" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="bathrooms" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Bathrooms
                   </Label>
                   <Input
@@ -805,11 +839,11 @@ export default function Properties() {
                     placeholder="Number of bathrooms"
                     value={formData.bathrooms}
                     onChange={handleInputChange}
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="areaSqft" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="areaSqft" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Area (sqft) *
                   </Label>
                   <Input
@@ -819,7 +853,7 @@ export default function Properties() {
                     value={formData.areaSqft}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 
@@ -829,8 +863,8 @@ export default function Properties() {
             {/* Property Images Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">Property Images</h3>
-                <p className="text-sm text-gray-600">Upload thumbnail and gallery images for the property</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Property Images</h3>
+                <p className="text-sm text-gray-600 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Upload thumbnail and gallery images for the property</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -854,13 +888,13 @@ export default function Properties() {
             {/* Location & Coordinates Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">Location & Coordinates</h3>
-                <p className="text-sm text-gray-600">Set the exact geographical location of the property</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Location & Coordinates</h3>
+                <p className="text-sm text-gray-600 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Set the exact geographical location of the property</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="latitude" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="latitude" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Latitude *
                   </Label>
                   <Input
@@ -871,11 +905,11 @@ export default function Properties() {
                     value={formData.latitude}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="longitude" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="longitude" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Longitude *
                   </Label>
                   <Input
@@ -886,7 +920,7 @@ export default function Properties() {
                     value={formData.longitude}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200" 
                   />
                 </div>
               </div>
@@ -895,13 +929,13 @@ export default function Properties() {
             {/* SEO Information Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">SEO Information</h3>
-                <p className="text-sm text-gray-600">Optimize the property for search engines</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">SEO Information</h3>
+                <p className="text-sm text-gray-600 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Optimize the property for search engines</p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="slug" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="slug" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     URL Slug *
                   </Label>
                   <Input
@@ -910,12 +944,12 @@ export default function Properties() {
                     value={formData.slug}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="seoTitle" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="seoTitle" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     SEO Title *
                   </Label>
                   <Input
@@ -924,12 +958,12 @@ export default function Properties() {
                     value={formData.seoTitle}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="seoDescription" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="seoDescription" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     SEO Description *
                   </Label>
                   <Input
@@ -938,7 +972,7 @@ export default function Properties() {
                     value={formData.seoDescription}
                     onChange={handleInputChange}
                     required
-                    className="w-full"
+                    className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
                 </div>
               </div>
@@ -947,13 +981,13 @@ export default function Properties() {
             {/* Additional Information Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">Additional Information</h3>
-                <p className="text-sm text-gray-600">Optional additional details and features</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Additional Information</h3>
+                <p className="text-sm text-gray-600 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Optional additional details and features</p>
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-sm font-medium text-gray-700">Virtual Tour Links</Label>
+                  <Label className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Virtual Tour Links</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -972,7 +1006,7 @@ export default function Properties() {
                       value={link}
                       onChange={handleVirtualTourLinkChange}
                       data-index={index}
-                      className="flex-1"
+                      className="flex-1 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                     />
                     {formData.virtualTourLink.length > 1 && (
                       <Button
@@ -993,34 +1027,34 @@ export default function Properties() {
             {/* Property Status Section */}
             <div className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h3 className="text-lg font-medium text-gray-900">Property Status</h3>
-                <p className="text-sm text-gray-600">Set the current status and visibility of the property</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Property Status</h3>
+                <p className="text-sm text-gray-600 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">Set the current status and visibility of the property</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="featured" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="featured" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Featured Property
                   </Label>
                   <Select value={formData.featured} onValueChange={(value) => handleSelectChange("featured", value)}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent className="bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectItem value="false">Not Featured</SelectItem>
                       <SelectItem value="true">Featured</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="sold" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="sold" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                     Property Status
                   </Label>
                   <Select value={formData.sold} onValueChange={(value) => handleSelectChange("sold", value)}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent className="bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectItem value="false">Available</SelectItem>
                       <SelectItem value="true">Sold</SelectItem>
                     </SelectContent>
@@ -1048,8 +1082,10 @@ export default function Properties() {
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
-    </AdminLayout>
+      </DialogContent>
+    </Dialog>
+  </div>
+</AdminLayout>
+
   )
 }

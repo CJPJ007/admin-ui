@@ -18,6 +18,7 @@ import type { FilterType } from "@/utils/interfaces"
 import { convertToSearchCriteriaList } from "@/lib/utils"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
+import { Loader } from "@/components/PageComponentSkeletonLoader"
 
 interface UserInterface {
   id: number
@@ -359,373 +360,434 @@ export default function Users() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-6 bg-gray-50 min-h-screen">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="h-16 bg-gray-200 rounded mb-6"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </AdminLayout>
+      <Loader />
     )
   }
 
   return (
-    <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
-        {/* Breadcrumb */}
-        <nav className="mb-6">
-          <div className="text-sm tracking-wide">
-            <Link href="/admin/dashboard" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              Dashboard
-            </Link>
-            <span className="mx-2">/</span>
-            <Link href="/admin/administration" className="p-0 h-auto text-blue-500 hover:text-blue-700">
-              System
-            </Link>
-            <span className="mx-2">/</span>
-            <span>Users</span>
-          </div>
-        </nav>
-
-        {/* Action Bar */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex flex-wrap gap-3">
-
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="h-4 w-4" />
-                  Filters
-                </Button>
-
-                <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
-                  <Plus className="h-4 w-4" />
-                  Create
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    fetchUsers()
-                    setCurrentPage(1)
-                    setFilters([{ field: "", operator: "equals", value: "" }])
-                    setShowFilters(false)
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reload
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold">Filters</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {filters.map((filter, index) => (
-                <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
-                    <SelectTrigger className="w-40">
-                      <span>{filter.field || "Select field"}</span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="username">Username</SelectItem>
-                      <SelectItem value="name">Name</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="role">Role</SelectItem>
-                      <SelectItem value="isActive">Status</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
-                    <SelectTrigger className="w-32">
-                      <span>{filter.operator || "Operator"}</span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="equals">Is equal to</SelectItem>
-                      <SelectItem value="contains">Contains</SelectItem>
-                      <SelectItem value="beginsWith">Begins With</SelectItem>
-                      <SelectItem value="endsWith">Ends With</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => updateFilter(index, "value", e.target.value)}
-                    className="w-48"
-                  />
-
-                  {filters.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFilter(index)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={addFilter}>
-                  Add additional filter
-                </Button>
-                <Button onClick={applyFilters} className="btn-primary">
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Users Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.length === users.length && users.length > 0}
-                    onChange={handleSelectAll}
-                    className="rounded border-gray-300"
-                  />
-                </TableHead>
-                <TableHead>USERNAME</TableHead>
-                <TableHead>EMAIL</TableHead>
-                <TableHead>ROLE</TableHead>
-                <TableHead>CREATED AT</TableHead>
-                <TableHead>STATUS</TableHead>
-                <TableHead>IS SUPER?</TableHead>
-                <TableHead className="w-32">OPERATIONS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => handleUserSelect(user.id)}
-                      className="rounded border-gray-300"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium text-blue-600 cursor-pointer"
-                    onClick={() => handleEditWithUrl(user)}>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.isActive ? "default" : "secondary"} className="bg-blue-100 text-blue-800">
-                      {user.isActive ? "Activated" : "Deactivated"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={user.role === "ADMIN" ? "default" : "secondary"}
-                      className="bg-green-100 text-green-800"
-                    >
-                      {user.role === "ADMIN" ? "Yes" : "No"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEditWithUrl(user)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(user.id)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredUsers.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-gray-500">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 border-t">
-            <div className="text-sm text-gray-600">
-              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              })}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </Card>
+<AdminLayout>
+  <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100">
+    {/* Breadcrumb */}
+    <nav className="mb-6">
+      <div className="text-sm tracking-wide">
+        <Link
+          href="/admin/dashboard"
+          className="p-0 h-auto text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          Dashboard
+        </Link>
+        <span className="mx-2 text-gray-600 dark:text-gray-400">/</span>
+        <Link
+          href="/admin/administration"
+          className="p-0 h-auto text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          System
+        </Link>
+        <span className="mx-2 text-gray-600 dark:text-gray-400">/</span>
+        <span className="text-gray-700 dark:text-gray-300">Users</span>
       </div>
+    </nav>
 
-      {/* Create User Modal */}
-      <Dialog open={showCreateModal} onOpenChange={(open) => {
-          if (!open) handleCloseModal()
-          else setShowCreateModal(true)
-        }}>
-        <DialogContent className="max-w-2xl bg-white">
-          <DialogHeader>
-            <DialogTitle>{isEditing?"Update User":"Create New User"}</DialogTitle>
-          </DialogHeader>
+    {/* Action Bar */}
+    <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username *</Label>
-                <Input
-                  id="username"
-                  placeholder="Enter username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password {isEditing?"(Optional)":"*"}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required = {isEditing ? false : true} // Password is required only when creating a new user
-                />
-              </div>
+            <Button
+              onClick={handleCreateWithUrl}
+              className="btn-primary"
+            >
+              <Plus className="h-4 w-4" />
+              Create
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchUsers()
+                setCurrentPage(1)
+                setFilters([{ field: "", operator: "equals", value: "" }])
+                setShowFilters(false)
+              }}
+              className="flex items-center gap-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reload
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Filters Panel */}
+    {showFilters && (
+      <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Filters
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex gap-3 mb-3 items-center">
+              <Select
+                value={filter.field}
+                onValueChange={(value) => updateFilter(index, "field", value)}
+              >
+                <SelectTrigger className="w-40 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <span>{filter.field || "Select field"}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  <SelectItem value="username">Username</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="role">Role</SelectItem>
+                  <SelectItem value="isActive">Status</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filter.operator}
+                onValueChange={(value) => updateFilter(index, "operator", value)}
+              >
+                <SelectTrigger className="w-32 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                  <span>{filter.operator || "Operator"}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  <SelectItem value="equals">Is equal to</SelectItem>
+                  <SelectItem value="contains">Contains</SelectItem>
+                  <SelectItem value="beginsWith">Begins With</SelectItem>
+                  <SelectItem value="endsWith">Ends With</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) => updateFilter(index, "value", e.target.value)}
+                className="w-48 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              />
+
+              {filters.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeFilter(index)}
+                  className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-500 hover:bg-red-50 dark:hover:bg-red-900"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
+          ))}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter full name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
+          <div className="flex gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={addFilter}
+              className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            >
+              Add additional filter
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  placeholder="Enter phone number"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role *</Label>
-                <Select value={formData.role} onValueChange={(value) => handleSelectChange("role", value)}>
-                  <SelectTrigger>
-                    <span>{formData.role}</span>
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="agent">Agent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
+    {/* Users Table */}
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <Table>
+        <TableHeader className="bg-gray-100 dark:bg-gray-700">
+          <TableRow>
+            <TableHead className="w-12 text-gray-900 dark:text-gray-100">
               <input
                 type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={handleInputChange}
-                className="rounded border-gray-300"
+                checked={selectedUsers.length === users.length && users.length > 0}
+                onChange={handleSelectAll}
+                className="rounded border-gray-300 dark:border-gray-600"
               />
-              <Label htmlFor="isActive">Active User</Label>
-            </div>
+            </TableHead>
+            <TableHead className="text-gray-900 dark:text-gray-100">USERNAME</TableHead>
+            <TableHead className="text-gray-900 dark:text-gray-100">EMAIL</TableHead>
+            <TableHead className="text-gray-900 dark:text-gray-100">ROLE</TableHead>
+            <TableHead className="text-gray-900 dark:text-gray-100">CREATED AT</TableHead>
+            <TableHead className="text-gray-900 dark:text-gray-100">STATUS</TableHead>
+            <TableHead className="text-gray-900 dark:text-gray-100">IS SUPER?</TableHead>
+            <TableHead className="w-32 text-gray-900 dark:text-gray-100">OPERATIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredUsers.map((user) => (
+            <TableRow key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+              <TableCell>
+                <input
+                  type="checkbox"
+                  checked={selectedUsers.includes(user.id)}
+                  onChange={() => handleUserSelect(user.id)}
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+              </TableCell>
+              <TableCell
+                className="font-medium text-blue-600 dark:text-blue-400 cursor-pointer"
+                onClick={() => handleEditWithUrl(user)}
+              >
+                {user.username}
+              </TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>
+                <Badge
+                  variant={user.role === "admin" ? "default" : "secondary"}
+                  className="bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100"
+                >
+                  {user.role}
+                </Badge>
+              </TableCell>
+              <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+              <TableCell>
+                <Badge
+                  variant={user.isActive ? "default" : "secondary"}
+                  className={`${
+                    user.isActive
+                      ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
+                      : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
+                  }`}
+                >
+                  {user.isActive ? "Activated" : "Deactivated"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={user.role === "ADMIN" ? "default" : "secondary"}
+                  className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
+                >
+                  {user.role === "ADMIN" ? "Yes" : "No"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditWithUrl(user)}
+                    className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(user.id)}
+                    className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-500 hover:bg-red-50 dark:hover:bg-red-900"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {filteredUsers.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={8}
+                className="text-center text-gray-500 dark:text-gray-400"
+              >
+                No users found
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseModal}>
-                Cancel
-              </Button>
-              <Button type="submit" className="btn-primary">
-                {isEditing?"Update User":"Create User"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Pagination */}
+      <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
+        </div>
 
-    </AdminLayout>
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+          >
+            Previous
+          </Button>
+
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const page = i + 1
+            return (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className={
+                  currentPage === page
+                    ? "bg-blue-600 text-white dark:bg-blue-500 dark:text-white"
+                    : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                }
+              >
+                {page}
+              </Button>
+            )
+          })}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </Card>
+  </div>
+
+  {/* Create User Modal */}
+  <Dialog
+    open={showCreateModal}
+    onOpenChange={(open) => {
+      if (!open) handleCloseModal()
+      else setShowCreateModal(true)
+    }}
+  >
+    <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+      <DialogHeader>
+        <DialogTitle>
+          {isEditing ? "Update User" : "Create New User"}
+        </DialogTitle>
+      </DialogHeader>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="username">Username *</Label>
+            <Input
+              id="username"
+              placeholder="Enter username"
+              value={formData.username}
+              onChange={handleInputChange}
+              required
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password {isEditing ? "(Optional)" : "*"}</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter password"
+              value={formData.password}
+              onChange={handleInputChange}
+              required={isEditing ? false : true}
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name *</Label>
+            <Input
+              id="name"
+              placeholder="Enter full name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              placeholder="Enter phone number"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="role">Role *</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => handleSelectChange("role", value)}
+            >
+              <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                <span>{formData.role}</span>
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="agent">Agent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={handleInputChange}
+            className="rounded border-gray-300 dark:border-gray-600"
+          />
+          <Label htmlFor="isActive">Active User</Label>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCloseModal}
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+          >
+            Cancel
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600">
+            {isEditing ? "Update User" : "Create User"}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
+</AdminLayout>
+
   )
 }

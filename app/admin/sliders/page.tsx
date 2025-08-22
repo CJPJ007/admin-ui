@@ -44,6 +44,7 @@ export default function Sliders() {
     title: "",
     subtitle: "",
     imageUrl: "",
+    mobileImageUrl:"",
     linkUrl: "",
     buttonText: "",
     sortOrder: 0,
@@ -143,10 +144,10 @@ export default function Sliders() {
     }
   };
 
-  const handleImageChange = (value: string | string[]) => {
+  const handleImageChange = (value: string | string[], key:string) => {
     setFormData({
       ...formData,
-      imageUrl: Array.isArray(value) ? value[0] || "" : value,
+      [key]: Array.isArray(value) ? value[0] || "" : value,
     });
   };
 
@@ -155,6 +156,7 @@ export default function Sliders() {
       title: "",
       subtitle: "",
       imageUrl: "",
+      mobileImageUrl:"",
       linkUrl: "",
       buttonText: "",
       sortOrder: 0,
@@ -194,452 +196,407 @@ export default function Sliders() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   return (
-    <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen dark:bg-gray-900">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-            Manage Sliders
-          </h1>
-          {/* Action Bar */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex gap-3 items-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="h-4 w-4" />
-                  Filters
-                </Button>
+   <AdminLayout>
+  <div className="p-6 bg-gray-50 min-h-screen dark:bg-gray-900">
+    <div className="mb-6">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+        Manage Sliders
+      </h1>
 
-                <Dialog
-                  open={showCreateModal}
-                  onOpenChange={setShowCreateModal}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      onClick={() => {
-                        resetForm();
-                        setShowCreateModal(true);
-                      }}
-                      className="flex items-center gap-2 btn-primary"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
+      {/* Action Bar */}
+      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardContent className="p-4">
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-200"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
 
+            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+              <DialogTrigger asChild>
                 <Button
-                  variant="outline"
                   onClick={() => {
-                    fetchSliders();
-                    setCurrentPage(1); // Reset to first page on reload
-                    setFilters([{ field: "", operator: "equals", value: "" }]); // Reset filters on reload
-                    setShowFilters(false); // Hide filters panel on reload
+                    resetForm()
+                    setShowCreateModal(true)
                   }}
-                  className="flex items-center gap-2 bg-transparent"
+                  className="flex items-center gap-2 btn-primary"
                 >
-                  <RotateCcw className="h-4 w-4" />
-                  Reload
+                  <Plus className="h-4 w-4" />
+                  Create
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </DialogTrigger>
+            </Dialog>
 
-        {/* Filters Panel */}
-        {showFilters && (
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold">Filters</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFilters(false)}
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchSliders()
+                setCurrentPage(1)
+                setFilters([{ field: "", operator: "equals", value: "" }])
+                setShowFilters(false)
+              }}
+              className="flex items-center gap-2 bg-transparent dark:border-gray-600 dark:text-gray-200"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reload
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    {/* Filters Panel */}
+    {showFilters && (
+      <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Filters
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowFilters(false)}
+            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex gap-3 mb-3 items-center">
+              <Select
+                value={filter.field}
+                onValueChange={(value) => updateFilter(index, "field", value)}
               >
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {filters.map((filter, index) => (
-                <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select
-                    value={filter.field}
-                    onValueChange={(value) =>
-                      updateFilter(index, "field", value)
-                    }
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select field" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem
-                        value="title"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Title
-                      </SelectItem>
-                      <SelectItem
-                        value="subtitle"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Subtitle
-                      </SelectItem>
-                      <SelectItem
-                        value="status"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Status
-                      </SelectItem>
-                      <SelectItem
-                        value="page"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Page
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <SelectTrigger className="w-40 dark:bg-gray-900 dark:border-gray-600">
+                  <SelectValue placeholder="Select field" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800">
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="subtitle">Subtitle</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="page">Page</SelectItem>
+                </SelectContent>
+              </Select>
 
-                  <Select
-                    value={filter.operator}
-                    onValueChange={(value) =>
-                      updateFilter(index, "operator", value)
-                    }
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Operator" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem
-                        value="equals"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Is equal to
-                      </SelectItem>
-                      <SelectItem
-                        value="contains"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Contains
-                      </SelectItem>
-                      <SelectItem
-                        value="beginsWith"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Begins With
-                      </SelectItem>
-                      <SelectItem
-                        value="endsWith"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Ends With
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              <Select
+                value={filter.operator}
+                onValueChange={(value) =>
+                  updateFilter(index, "operator", value)
+                }
+              >
+                <SelectTrigger className="w-32 dark:bg-gray-900 dark:border-gray-600">
+                  <SelectValue placeholder="Operator" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800">
+                  <SelectItem value="equals">Is equal to</SelectItem>
+                  <SelectItem value="contains">Contains</SelectItem>
+                  <SelectItem value="beginsWith">Begins With</SelectItem>
+                  <SelectItem value="endsWith">Ends With</SelectItem>
+                </SelectContent>
+              </Select>
 
-                  <Input
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) =>
-                      updateFilter(index, "value", e.target.value)
-                    }
-                    className="w-48"
-                  />
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) => updateFilter(index, "value", e.target.value)}
+                className="w-48 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+              />
 
-                  {filters.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeFilter(index)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={addFilter}>
-                  Add additional filter
-                </Button>
-                <Button onClick={applyFilters} className="btn-primary">
-                  Apply
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Slider List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sliders List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Subtitle</TableHead>
-                  <TableHead>Page</TableHead>
-                  <TableHead>Image URL</TableHead>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-32">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sliders.map((slider) => (
-                  <TableRow key={slider.id}>
-                    <TableCell className="font-medium">
-                      {slider.title}
-                    </TableCell>
-                    <TableCell>{slider.subtitle}</TableCell>
-                    <TableCell>{slider.page}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      <img
-                        src={
-                          `/images/${slider.imageUrl}` ||
-                          "/placeholder.svg?height=40&width=40"
-                        }
-                        alt={slider.title}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    </TableCell>
-                    <TableCell>{slider.sortOrder}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={slider.isActive ? "default" : "secondary"}
-                      >
-                        {slider.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(slider)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteSlider(slider.id)}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {sliders.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center text-gray-500"
-                    >
-                      No sliders found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            {/* Pagination */}
-            <div className="flex justify-between items-center p-4 border-t">
-              <div className="text-sm text-gray-600">
-                Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)}{" "}
-                in {totalRecords} records
-              </div>
-
-              <div className="flex gap-2 items-center">
+              {filters.length > 1 && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="btn-primary"
+                  onClick={() => removeFilter(index)}
+                  className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
                 >
-                  Previous
-                </Button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  )
-                )}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="btn-primary"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Create/Edit Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] bg-white overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditing ? "Edit Slider" : "Create Slider"}
-            </DialogTitle>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="subtitle">Subtitle</Label>
-                <Input
-                  id="subtitle"
-                  value={formData.subtitle || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="page">Page</Label>
-                 <Select
-                    value={formData.page}
-                    onValueChange={(e)=>{handleInputChange({target: {id: "page", value: e}})}}
-                    required
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select Page" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem
-                        value="Home"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Home
-                      </SelectItem>
-                      <SelectItem
-                        value="Properties"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Properties
-                      </SelectItem>
-                      <SelectItem
-                        value="Blog"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Blog
-                      </SelectItem>
-                      <SelectItem
-                        value="Services"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Services
-                      </SelectItem>
-                      <SelectItem
-                        value="About"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        About
-                      </SelectItem>
-                      <SelectItem
-                        value="Gallery"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Gallery
-                      </SelectItem>
-                      <SelectItem
-                        value="Contact"
-                        className="hover:bg-gray-100 hover:cursor-pointer"
-                      >
-                        Contact
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="linkUrl">Link URL</Label>
-                <Input
-                  id="linkUrl"
-                  value={formData.linkUrl || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sortOrder">Sort Order</Label>
-                <Input
-                  id="sortOrder"
-                  type="number"
-                  value={formData.sortOrder || 0}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex items-center space-x-2 pt-2">
-                  <Checkbox
-                    id="isActive"
-                    checked={formData.isActive || false}
-                    onCheckedChange={handleCheckboxChange}
-                  />
-                  <Label htmlFor="isActive" className="text-sm font-normal">
-                    Is Active
-                  </Label>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <MediaSelector
-                  label="Image"
-                  value={formData.imageUrl || ""}
-                  onChange={handleImageChange}
-                  multipleUpload={false}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button type="submit" className="btn-primary">
-                {isEditing ? "Update Slider" : "Add Slider"}
-              </Button>
-              {isEditing && (
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               )}
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </AdminLayout>
+          ))}
+
+          <div className="flex gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={addFilter}
+              className="dark:border-gray-600 dark:text-gray-200"
+            >
+              Add additional filter
+            </Button>
+            <Button onClick={applyFilters} className="btn-primary">
+              Apply
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
+
+    {/* Slider List */}
+    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <CardHeader>
+        <CardTitle className="text-gray-900 dark:text-gray-100">
+          Sliders List
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader className="bg-gray-100 dark:bg-gray-700">
+            <TableRow>
+              <TableHead className="text-gray-900 dark:text-gray-100">Title</TableHead>
+              <TableHead className="text-gray-900 dark:text-gray-100">Subtitle</TableHead>
+              <TableHead className="text-gray-900 dark:text-gray-100">Page</TableHead>
+              <TableHead className="text-gray-900 dark:text-gray-100">Image URL</TableHead>
+              <TableHead className="text-gray-900 dark:text-gray-100">Order</TableHead>
+              <TableHead className="text-gray-900 dark:text-gray-100">Status</TableHead>
+              <TableHead className="w-32 text-gray-900 dark:text-gray-100">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sliders.map((slider) => (
+              <TableRow
+                key={slider.id}
+                className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+              >
+                <TableCell className="font-medium">{slider.title}</TableCell>
+                <TableCell>{slider.subtitle}</TableCell>
+                <TableCell>{slider.page}</TableCell>
+                <TableCell className="max-w-xs truncate">
+                  <img
+                    src={
+                      `/images/${slider.imageUrl}` ||
+                      "/placeholder.svg?height=40&width=40"
+                    }
+                    alt={slider.title}
+                    className="w-10 h-10 rounded object-cover"
+                  />
+                </TableCell>
+                <TableCell>{slider.sortOrder}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={slider.isActive ? "default" : "secondary"}
+                    className="dark:bg-gray-600"
+                  >
+                    {slider.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(slider)}
+                      className="dark:border-gray-600 dark:text-gray-200"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteSlider(slider.id)}
+                      className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {sliders.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-center text-gray-500 dark:text-gray-400"
+                >
+                  No sliders found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in{" "}
+            {totalRecords} records
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="btn-primary dark:border-gray-600 dark:text-gray-200"
+            >
+              Previous
+            </Button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="dark:border-gray-600 dark:text-gray-200"
+              >
+                {page}
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="btn-primary dark:border-gray-600 dark:text-gray-200"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+
+  {/* Create/Edit Modal */}
+  <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+    <DialogContent className="max-w-4xl max-h-[90vh] bg-white dark:bg-gray-900 overflow-y-auto border border-gray-200 dark:border-gray-700">
+      <DialogHeader>
+        <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          {isEditing ? "Edit Slider" : "Create Slider"}
+        </DialogTitle>
+      </DialogHeader>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="dark:text-gray-200">Title</Label>
+            <Input
+              id="title"
+              value={formData.title || ""}
+              onChange={handleInputChange}
+              className="dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle" className="dark:text-gray-200">Subtitle</Label>
+            <Input
+              id="subtitle"
+              value={formData.subtitle || ""}
+              onChange={handleInputChange}
+              className="dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="page" className="dark:text-gray-200">Page</Label>
+            <Select
+              value={formData.page}
+              onValueChange={(e) =>
+                handleInputChange({ target: { id: "page", value: e } })
+              }
+              required
+            >
+              <SelectTrigger className="w-40 dark:bg-gray-900 dark:border-gray-600">
+                <SelectValue placeholder="Select Page" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800">
+                <SelectItem value="Home">Home</SelectItem>
+                <SelectItem value="Properties">Properties</SelectItem>
+                <SelectItem value="Blog">Blog</SelectItem>
+                <SelectItem value="Services">Services</SelectItem>
+                <SelectItem value="About">About</SelectItem>
+                <SelectItem value="Gallery">Gallery</SelectItem>
+                <SelectItem value="Contact">Contact</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="linkUrl" className="dark:text-gray-200">Link URL</Label>
+            <Input
+              id="linkUrl"
+              value={formData.linkUrl || ""}
+              onChange={handleInputChange}
+              className="dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sortOrder" className="dark:text-gray-200">Sort Order</Label>
+            <Input
+              id="sortOrder"
+              type="number"
+              value={formData.sortOrder || 0}
+              onChange={handleInputChange}
+              required
+              className="dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="dark:text-gray-200">Status</Label>
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="isActive"
+                checked={formData.isActive || false}
+                onCheckedChange={handleCheckboxChange}
+              />
+              <Label
+                htmlFor="isActive"
+                className="text-sm font-normal dark:text-gray-300"
+              >
+                Is Active
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-2">
+            <MediaSelector
+              label="Image"
+              value={formData.imageUrl || ""}
+              onChange={(value) => handleImageChange(value, "imageUrl")}
+              multipleUpload={false}
+            />
+          </div>
+          <div className="space-y-2">
+            <MediaSelector
+              label="Mobile Image"
+              value={formData.mobileImageUrl || ""}
+              onChange={(value) => handleImageChange(value, "mobileImageUrl")}
+              multipleUpload={false}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button type="submit" className="btn-primary">
+            {isEditing ? "Update Slider" : "Add Slider"}
+          </Button>
+          {isEditing && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetForm}
+              className="dark:border-gray-600 dark:text-gray-200"
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
+</AdminLayout>
+
   );
 }

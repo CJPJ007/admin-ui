@@ -107,6 +107,6 @@
   }
 
   .btn-primary {
-    @apply bg-[#0056FF] text-white hover:bg-[#0011ff];
+    @apply bg-[#0056FF] text-white hover:bg-[#0011ff] dark:bg-[#002a80] dark:hover:bg-[#272d82];
   }
 }
