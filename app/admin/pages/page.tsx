@@ -60,6 +60,10 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import RichTextEditor from "@/components/RichTextEditor";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { TeamMember } from "@/utils/interfaces";
+import { SortableTeamCard } from "@/components/SortableTeamCard";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
@@ -74,20 +78,6 @@ interface AboutUsContent {
   imageUrl: string;
   display_order: number;
   is_active: boolean;
-}
-
-interface TeamMember {
-  id: number;
-  name: string;
-  position: string;
-  description: string;
-  imageUrl: string;
-  email: string;
-  phone: string;
-  socialLinkedin: string;
-  socialTwitter: string;
-  displayOrder: number;
-  isActive: boolean;
 }
 
 interface CompanyValue {
@@ -501,6 +491,44 @@ export default function AboutUsManagement() {
     setStoryContent(value);
   };
 
+  const handleDragEnd = (event:DragEndEvent) => {
+  const { active, over } = event;
+  if (!over || active.id === over.id) return;
+
+  setTeamMembers((prev) => {
+    const oldIndex = prev.findIndex((m) => m.id === active.id);
+    const newIndex = prev.findIndex((m) => m.id === over.id);
+
+    const newOrder = arrayMove(prev, oldIndex, newIndex).map(
+      (member, index) => ({
+        ...member,
+        displayOrder: index + 1, // update displayOrder
+      })
+    );
+
+    // ✅ Optional: sync with backend API
+    saveNewOrder(newOrder);
+
+    return newOrder;
+  });
+};
+
+  const saveNewOrder = async (newOrder: TeamMember[]) => {
+    try {
+      // Update each team member's order using saveTeamMember API
+      await Promise.all(
+        newOrder.map((member) =>
+          api(`/api/admin/team-members/${member.id}`, {
+        method: "PUT",
+        body: JSON.stringify(member),
+          })
+        )
+      );
+    } catch (error) {
+      console.error("Error saving new order:", error);
+    }
+  };
+
   const iconMap: { [key: string]: React.ReactNode } = {
     "shield-check": <ShieldCheck className="h-6 w-6" />,
     award: <Award className="h-6 w-6" />,
@@ -604,82 +632,93 @@ export default function AboutUsManagement() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Team Members Tab */}
-          <TabsContent value="team">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Team Members</h2>
-                <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
-                  <DialogTrigger asChild>
-                    <Button
-                      className="flex items-center gap-2"
-                      onClick={() => {
-                        setEditingTeamMember(null);
-                        setTeamForm({});
-                      }}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Team Member
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teamMembers.map((member) => (
-                  <Card key={member.id}>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="w-full bg-gray-200 rounded-md flex items-center justify-center">
-                          {member.imageUrl ? (
-                            <img
-                              src={
-                                `/images/${member.imageUrl}` ||
-                                "/placeholder.svg"
-                              }
-                              alt={member.name}
-                              className="w-full h-64 object-cover rounded-md"
-                            />
-                          ) : (
-                            <Users className="h-12 w-12 text-gray-400" />
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{member.name}</h3>
-                          <Badge variant="secondary">{member.position}</Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {member.description}
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setEditingTeamMember(member);
-                              setTeamForm(member);
-                              setShowTeamModal(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => deleteTeamMember(member.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+        
+        <TabsContent value="team">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Team Members</h2>
+              <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="flex items-center gap-2"
+                    onClick={() => {
+                      setEditingTeamMember(null);
+                      setTeamForm({});
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Team Member
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
             </div>
-          </TabsContent>
+
+            {/* DnD wrapper */}
+            <DndContext
+              sensors={useSensors(useSensor(PointerSensor))}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={teamMembers.map((m) => m.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {teamMembers.map((member) => (
+                    <SortableTeamCard key={member.id} member={member}>
+                      <Card >
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div className="w-full bg-gray-200 rounded-md flex items-center justify-center">
+                              {member.imageUrl ? (
+                                <img
+                                  src={`/images/${member.imageUrl}`}
+                                  alt={member.name}
+                                  className="w-full h-64 object-cover rounded-md"
+                                />
+                              ) : (
+                                <Users className="h-12 w-12 text-gray-400" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold">{member.name}</h3>
+                              <Badge variant="secondary">{member.position}</Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-3">
+                              {member.description}
+                            </p>
+                            
+                          </div>
+                        </CardContent>
+                        <div className="flex gap-2 ml-4 mb-4">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingTeamMember(member);
+                                  setTeamForm(member);
+                                  setShowTeamModal(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => deleteTeamMember(member.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                      </Card>
+                    </SortableTeamCard>
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        </TabsContent>
 
           {/* Company Values Tab */}
           <TabsContent value="values">
@@ -1348,916 +1387,707 @@ export default function AboutUsManagement() {
 
         {/* Team Member Modal */}
         <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
-          <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingTeamMember ? "Edit Team Member" : "Add Team Member"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={saveTeamMember} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Name *</Label>
-                  <Input
-                    value={teamForm.name || ""}
-                    onChange={(e) =>
-                      setTeamForm({ ...teamForm, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Position *</Label>
-                  <Select
-                    value={teamForm.position}
-                    onValueChange={(value) =>
-                      setTeamForm({ ...teamForm, position: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="MD">MD</SelectItem>
-                      <SelectItem value="CEO">CEO</SelectItem>
-                      <SelectItem value="Manager (Admin)">Manager (Admin)</SelectItem>
-                      <SelectItem value="Manager (Marketing)">Manager (Marketing)</SelectItem>
-                      <SelectItem value="Senior Manager">Senior Manager</SelectItem>
-                      <SelectItem value="Sales Manager">Sales Manager</SelectItem>
-                      <SelectItem value="Founder">Founder</SelectItem>
-                      <SelectItem value="Employee">Employee</SelectItem>
-                      <SelectItem value="Technical Manager">Technical Manager</SelectItem>
-                      <SelectItem value="Others">Others</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={teamForm.description || ""}
-                  onChange={(e) =>
-                    setTeamForm({ ...teamForm, description: e.target.value })
-                  }
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={teamForm.email || ""}
-                    onChange={(e) =>
-                      setTeamForm({ ...teamForm, email: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Phone</Label>
-                  <Input
-                    value={teamForm.phone || ""}
-                    onChange={(e) =>
-                      setTeamForm({ ...teamForm, phone: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>LinkedIn URL</Label>
-                  <Input
-                    value={teamForm.socialLinkedin || ""}
-                    onChange={(e) =>
-                      setTeamForm({
-                        ...teamForm,
-                        socialLinkedin: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Twitter URL</Label>
-                  <Input
-                    value={teamForm.socialTwitter || ""}
-                    onChange={(e) =>
-                      setTeamForm({
-                        ...teamForm,
-                        socialTwitter: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Display Order</Label>
-                  <Input
-                    value={teamForm.displayOrder || ""}
-                    type="number"
-                    onChange={(e) =>
-                      setTeamForm({
-                        ...teamForm,
-                        displayOrder: parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <MediaSelector
-                  label="Profile Image"
-                  value={teamForm.imageUrl || ""}
-                  onChange={(value) =>
-                    setTeamForm({
-                      ...teamForm,
-                      imageUrl: Array.isArray(value) ? value[0] : value,
-                    })
-                  }
-                  multipleUpload={false}
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowTeamModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="btn-primary">
-                  Save Team Member
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+  <DialogContent className="bg-white dark:bg-slate-900 max-w-2xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="text-slate-900 dark:text-slate-100">
+        {editingTeamMember ? "Edit Team Member" : "Add Team Member"}
+      </DialogTitle>
+    </DialogHeader>
+    <form onSubmit={saveTeamMember} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Name *</Label>
+          <Input
+            value={teamForm.name || ""}
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, name: e.target.value })
+            }
+            required
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Position *</Label>
+          <Select
+            value={teamForm.position}
+            onValueChange={(value) =>
+              setTeamForm({ ...teamForm, position: value })
+            }
+          >
+            <SelectTrigger className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+              <SelectItem value="MD">MD</SelectItem>
+              <SelectItem value="CEO">CEO</SelectItem>
+              <SelectItem value="Manager (Admin)">Manager (Admin)</SelectItem>
+              <SelectItem value="Manager (Marketing)">Manager (Marketing)</SelectItem>
+              <SelectItem value="Senior Manager">Senior Manager</SelectItem>
+              <SelectItem value="Sales Manager">Sales Manager</SelectItem>
+              <SelectItem value="Founder">Founder</SelectItem>
+              <SelectItem value="Employee">Employee</SelectItem>
+              <SelectItem value="Technical Manager">Technical Manager</SelectItem>
+              <SelectItem value="Others">Others</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-slate-700 dark:text-slate-300">Description</Label>
+        <Textarea
+          value={teamForm.description || ""}
+          onChange={(e) =>
+            setTeamForm({ ...teamForm, description: e.target.value })
+          }
+          rows={3}
+          className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Email</Label>
+          <Input
+            type="email"
+            value={teamForm.email || ""}
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, email: e.target.value })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Phone</Label>
+          <Input
+            value={teamForm.phone || ""}
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, phone: e.target.value })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">LinkedIn URL</Label>
+          <Input
+            value={teamForm.socialLinkedin || ""}
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, socialLinkedin: e.target.value })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Twitter URL</Label>
+          <Input
+            value={teamForm.socialTwitter || ""}
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, socialTwitter: e.target.value })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Display Order</Label>
+          <Input
+            value={teamForm.displayOrder || ""}
+            type="number"
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, displayOrder: parseInt(e.target.value) })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <MediaSelector
+          label="Profile Image"
+          value={teamForm.imageUrl || ""}
+          onChange={(value) =>
+            setTeamForm({
+              ...teamForm,
+              imageUrl: Array.isArray(value) ? value[0] : value,
+            })
+          }
+          multipleUpload={false}
+        />
+      </div>
+
+      <div className="flex gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowTeamModal(false)}
+          className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="btn-primary bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
+        >
+          Save Team Member
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
 
         {/* Company Value Modal */}
         <Dialog open={showValueModal} onOpenChange={setShowValueModal}>
-          <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingValue ? "Edit Company Value" : "Add Company Value"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={saveCompanyValue} className="space-y-4">
+  <DialogContent className="bg-white dark:bg-slate-900 max-w-2xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="text-slate-900 dark:text-slate-100">
+        {editingValue ? "Edit Company Value" : "Add Company Value"}
+      </DialogTitle>
+    </DialogHeader>
+    <form onSubmit={saveCompanyValue} className="space-y-4">
+      <div className="space-y-2">
+        <Label className="text-slate-700 dark:text-slate-300">Title *</Label>
+        <Input
+          value={valueForm.title || ""}
+          onChange={(e) =>
+            setValueForm({ ...valueForm, title: e.target.value })
+          }
+          required
+          className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-slate-700 dark:text-slate-300">Description</Label>
+        <Textarea
+          value={valueForm.description || ""}
+          onChange={(e) =>
+            setValueForm({ ...valueForm, description: e.target.value })
+          }
+          rows={3}
+          className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Icon</Label>
+          <Select
+            value={valueForm.iconName || "heart"}
+            onValueChange={(value) =>
+              setValueForm({ ...valueForm, iconName: value })
+            }
+          >
+            <SelectTrigger className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700">
+              <SelectValue placeholder="Select an icon" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+              {iconOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value} className="dark:text-slate-100">
+                  <div className="flex items-center gap-2">{option.icon} {option.label}</div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Icon Color</Label>
+          <div className="flex gap-2">
+            <Input
+              value={valueForm.iconColor || "#6366f1"}
+              onChange={(e) =>
+                setValueForm({ ...valueForm, iconColor: e.target.value })
+              }
+              type="color"
+              className="w-16 border-slate-300 dark:border-slate-700"
+            />
+            <Input
+              value={valueForm.iconColor || "#6366f1"}
+              onChange={(e) =>
+                setValueForm({ ...valueForm, iconColor: e.target.value })
+              }
+              placeholder="#6366f1"
+              className="flex-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowValueModal(false)}
+          className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="btn-primary bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
+        >
+          Save Value
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
+
+        {/* Contact Info Edit Modal */}
+        <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
+  <DialogContent className="bg-white dark:bg-slate-900 max-w-4xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="text-slate-900 dark:text-slate-100">
+        Edit Company Contact Information
+      </DialogTitle>
+    </DialogHeader>
+
+    {companyInfo && (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* Basic Information */}
+          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <Building className="h-5 w-5" />
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Title *</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Company Name *</Label>
                 <Input
-                  value={valueForm.title || ""}
+                  value={companyInfo.companyName}
                   onChange={(e) =>
-                    setValueForm({ ...valueForm, title: e.target.value })
+                    setCompanyInfo({ ...companyInfo, companyName: e.target.value })
                   }
                   required
+                  className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  value={valueForm.description || ""}
+                <Label className="text-slate-700 dark:text-slate-300">Tagline</Label>
+                <Input
+                  value={companyInfo.tagline}
                   onChange={(e) =>
-                    setValueForm({ ...valueForm, description: e.target.value })
+                    setCompanyInfo({ ...companyInfo, tagline: e.target.value })
                   }
-                  rows={3}
+                  className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-700 dark:text-slate-300">About Description</Label>
+                <Textarea
+                  value={companyInfo.aboutDescription}
+                  onChange={(e) =>
+                    setCompanyInfo({ ...companyInfo, aboutDescription: e.target.value })
+                  }
+                  rows={4}
+                  className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Icon</Label>
-                  <Select
-                    value={valueForm.iconName || "heart"}
-                    onValueChange={(value) =>
-                      setValueForm({ ...valueForm, iconName: value })
+                  <Label className="text-slate-700 dark:text-slate-300">Established Year</Label>
+                  <Input
+                    type="number"
+                    value={companyInfo.establishedYear}
+                    onChange={(e) =>
+                      setCompanyInfo({ ...companyInfo, establishedYear: Number.parseInt(e.target.value) })
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an icon" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {iconOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div className="flex items-center gap-2">
-                            {option.icon}
-                            {option.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Icon Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={valueForm.iconColor || "#6366f1"}
-                      onChange={(e) =>
-                        setValueForm({
-                          ...valueForm,
-                          iconColor: e.target.value,
-                        })
-                      }
-                      type="color"
-                      className="w-16"
-                    />
-                    <Input
-                      value={valueForm.iconColor || "#6366f1"}
-                      onChange={(e) =>
-                        setValueForm({
-                          ...valueForm,
-                          iconColor: e.target.value,
-                        })
-                      }
-                      placeholder="#6366f1"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowValueModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="btn-primary">
-                  Save Value
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Contact Info Edit Modal */}
-        <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
-          <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Company Contact Information</DialogTitle>
-            </DialogHeader>
-            {companyInfo && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Basic Information */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Building className="h-5 w-5" />
-                        Basic Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Company Name *</Label>
-                        <Input
-                          value={companyInfo.companyName}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              companyName: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Tagline</Label>
-                        <Input
-                          value={companyInfo.tagline}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              tagline: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>About Description</Label>
-                        <Textarea
-                          value={companyInfo.aboutDescription}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              aboutDescription: e.target.value,
-                            })
-                          }
-                          rows={4}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Established Year</Label>
-                          <Input
-                            type="number"
-                            value={companyInfo.establishedYear}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                establishedYear: Number.parseInt(
-                                  e.target.value
-                                ),
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>License Number</Label>
-                          <Input
-                            value={companyInfo.licenseNumber}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                licenseNumber: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-{/* Referral Details */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        {/* <Bill className="h-5 w-5" /> */}
-                        Referral Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Referral Amount *</Label>
-                        <Input
-                          type="number"
-                          value={companyInfo.referralAmount}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              referralAmount: Number.parseFloat(e.target.value),
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Contact Details */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Phone className="h-5 w-5" />
-                        Contact Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Primary Email *</Label>
-                        <Input
-                          type="email"
-                          value={companyInfo.primaryEmail}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              primaryEmail: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Primary Phone *</Label>
-                        <Input
-                          value={companyInfo.primaryPhone}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              primaryPhone: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Secondary Phone</Label>
-                        <Input
-                          value={companyInfo.secondaryPhone}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              secondaryPhone: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>WhatsApp Number</Label>
-                        <Input
-                          value={companyInfo.whatsappNumber}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              whatsappNumber: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Weekday Hours</Label>
-                          <Input
-                            value={companyInfo.businessHoursWeekday}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                businessHoursWeekday: e.target.value,
-                              })
-                            }
-                            placeholder="9:00 AM - 6:00 PM"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Weekend Hours</Label>
-                          <Input
-                            value={companyInfo.businessHoursWeekend}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                businessHoursWeekend: e.target.value,
-                              })
-                            }
-                            placeholder="10:00 AM - 4:00 PM"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Address Information */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5" />
-                        Address Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Street Address *</Label>
-                        <Textarea
-                          value={companyInfo.streetAddress}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              streetAddress: e.target.value,
-                            })
-                          }
-                          rows={3}
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>City *</Label>
-                          <Input
-                            value={companyInfo.city}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                city: e.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>State *</Label>
-                          <Input
-                            value={companyInfo.state}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                state: e.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Postal Code</Label>
-                          <Input
-                            value={companyInfo.postalCode}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                postalCode: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Country</Label>
-                          <Input
-                            value={companyInfo.country}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                country: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Google Maps URL</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={companyInfo.googleMapsUrl}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                googleMapsUrl: e.target.value,
-                              })
-                            }
-                            placeholder="https://maps.google.com/..."
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={generateGoogleMapsUrl}
-                          >
-                            Generate
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Latitude</Label>
-                          <Input
-                            type="number"
-                            step="any"
-                            value={companyInfo.latitude}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                latitude: Number.parseFloat(e.target.value),
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Longitude</Label>
-                          <Input
-                            type="number"
-                            step="any"
-                            value={companyInfo.longitude}
-                            onChange={(e) =>
-                              setCompanyInfo({
-                                ...companyInfo,
-                                longitude: Number.parseFloat(e.target.value),
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Social Media & SEO */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Globe className="h-5 w-5" />
-                        Social Media & SEO
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Website URL</Label>
-                        <Input
-                          value={companyInfo.websiteUrl}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              websiteUrl: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Facebook URL</Label>
-                        <Input
-                          value={companyInfo.facebookUrl}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              facebookUrl: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Instagram URL</Label>
-                        <Input
-                          value={companyInfo.instagramUrl}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              instagramUrl: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>LinkedIn URL</Label>
-                        <Input
-                          value={companyInfo.linkedinUrl}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              linkedinUrl: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Twitter URL</Label>
-                        <Input
-                          value={companyInfo.twitterUrl}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              twitterUrl: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>YouTube URL</Label>
-                        <Input
-                          value={companyInfo.youtubeUrl}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              youtubeUrl: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Meta Title</Label>
-                        <Input
-                          value={companyInfo.meta_title}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              meta_title: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Meta Description</Label>
-                        <Textarea
-                          value={companyInfo.meta_description}
-                          onChange={(e) =>
-                            setCompanyInfo({
-                              ...companyInfo,
-                              meta_description: e.target.value,
-                            })
-                          }
-                          rows={3}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="flex gap-4 justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowContactModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={saveCompanyInfo}
-                    className="flex items-center gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
-          <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingService ? "Edit Service" : "Add Service"}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={saveService} className="space-y-6">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-2">
-                  <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Service Title *</Label>
-                    <Input
-                      value={serviceForm.title || ""}
-                      onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
-                      placeholder="e.g., Property Buying"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Icon</Label>
-                    <Select
-                      value={serviceForm.iconName || "home"}
-                      onValueChange={(value) => setServiceForm({ ...serviceForm, iconName: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {iconOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
-                              {option.icon}
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Short Description *</Label>
-                  <Textarea
-                    value={serviceForm.shortDescription || ""}
-                    onChange={(e) => setServiceForm({ ...serviceForm, shortDescription: e.target.value })}
-                    placeholder="Brief description for the service card"
-                    rows={2}
-                    required
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label>Full Description</Label>
-                  <Textarea
-                    value={serviceForm.description || ""}
-                    onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                    placeholder="Detailed description of the service"
-                    rows={4}
+                  <Label className="text-slate-700 dark:text-slate-300">License Number</Label>
+                  <Input
+                    value={companyInfo.licenseNumber}
+                    onChange={(e) =>
+                      setCompanyInfo({ ...companyInfo, licenseNumber: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Service Image */}
-              <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-2">
-                  <h3 className="text-lg font-medium text-gray-900">Service Image</h3>
-                </div>
-
-                <MediaSelector
-                  label="Service Image"
-                  value={serviceForm.imageUrl || ""}
-                  onChange={(value) =>
-                    setServiceForm({
-                      ...serviceForm,
-                      imageUrl: Array.isArray(value) ? value[0] : value,
-                    })
+          {/* Referral Details */}
+          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                Referral Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-slate-700 dark:text-slate-300">Referral Amount *</Label>
+                <Input
+                  type="number"
+                  value={companyInfo.referralAmount}
+                  onChange={(e) =>
+                    setCompanyInfo({ ...companyInfo, referralAmount: Number.parseFloat(e.target.value) })
                   }
-                  multipleUpload={false}
+                  required
+                  className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Key Features */}
-              <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-2">
-                  <h3 className="text-lg font-medium text-gray-900">Key Features</h3>
+          {/* Contact Details */}
+          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <Phone className="h-5 w-5" />
+                Contact Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {["primaryEmail", "primaryPhone", "secondaryPhone", "whatsappNumber"].map((field) => (
+                <div key={field} className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">
+                    {field === "primaryEmail" ? "Primary Email *" : field === "primaryPhone" ? "Primary Phone *" : field === "secondaryPhone" ? "Secondary Phone" : "WhatsApp Number"}
+                  </Label>
+                  <Input
+                    value={companyInfo[field]}
+                    onChange={(e) => setCompanyInfo({ ...companyInfo, [field]: e.target.value })}
+                    type={field === "primaryEmail" ? "email" : "text"}
+                    required={field === "primaryEmail" || field === "primaryPhone"}
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
                 </div>
-
-                <div className="space-y-3">
-                  {(serviceForm.keyFeatures || []).map((feature, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={feature}
-                        onChange={(e) => updateKeyFeature(index, e.target.value)}
-                        placeholder={`Feature ${index + 1}`}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeKeyFeature(index)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addKeyFeature}
-                    className="flex items-center gap-2 bg-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Feature
-                  </Button>
+              ))}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">Weekday Hours</Label>
+                  <Input
+                    value={companyInfo.businessHoursWeekday}
+                    onChange={(e) => setCompanyInfo({ ...companyInfo, businessHoursWeekday: e.target.value })}
+                    placeholder="9:00 AM - 6:00 PM"
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">Weekend Hours</Label>
+                  <Input
+                    value={companyInfo.businessHoursWeekend}
+                    onChange={(e) => setCompanyInfo({ ...companyInfo, businessHoursWeekend: e.target.value })}
+                    placeholder="10:00 AM - 4:00 PM"
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-             
+          {/* Address Information */}
+          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <MapPin className="h-5 w-5" />
+                Address Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {["streetAddress", "city", "state", "postalCode", "country", "googleMapsUrl", "latitude", "longitude"].map((field, idx) => (
+                <div key={idx} className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">{field}</Label>
+                  <Input
+                    value={companyInfo[field]}
+                    onChange={(e) =>
+                      setCompanyInfo({ ...companyInfo, [field]: field === "latitude" || field === "longitude" ? Number.parseFloat(e.target.value) : e.target.value })
+                    }
+                    type={field === "latitude" || field === "longitude" ? "number" : "text"}
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-              {/* Form Actions */}
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                <Button type="button" variant="outline" onClick={() => setShowServiceModal(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="btn-primary">
-                  {editingService ? "Update Service" : "Create Service"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+          {/* Social Media & SEO */}
+          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <Globe className="h-5 w-5" />
+                Social Media & SEO
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {["websiteUrl", "facebookUrl", "instagramUrl", "linkedinUrl", "twitterUrl", "youtubeUrl", "meta_title", "meta_description"].map((field) => (
+                <div key={field} className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">{field}</Label>
+                  {field === "meta_description" ? (
+                    <Textarea
+                      value={companyInfo[field]}
+                      onChange={(e) => setCompanyInfo({ ...companyInfo, [field]: e.target.value })}
+                      rows={3}
+                      className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                    />
+                  ) : (
+                    <Input
+                      value={companyInfo[field]}
+                      onChange={(e) => setCompanyInfo({ ...companyInfo, [field]: e.target.value })}
+                      className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                    />
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+        </div>
+
+        <div className="flex gap-4 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowContactModal(false)}
+            className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={saveCompanyInfo}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
+          >
+            <Save className="h-4 w-4" />
+            Save Changes
+          </Button>
+        </div>
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
+
+
+        <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
+  <DialogContent className="bg-white dark:bg-slate-900 max-w-4xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="text-slate-900 dark:text-slate-100">
+        {editingService ? "Edit Service" : "Add Service"}
+      </DialogTitle>
+    </DialogHeader>
+
+    <form onSubmit={saveService} className="space-y-6">
+
+      {/* Basic Information */}
+      <div className="space-y-4">
+        <div className="border-b border-gray-200 dark:border-slate-700 pb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">Basic Information</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-slate-700 dark:text-slate-300">Service Title *</Label>
+            <Input
+              value={serviceForm.title || ""}
+              onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
+              placeholder="e.g., Property Buying"
+              required
+              className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-slate-700 dark:text-slate-300">Icon</Label>
+            <Select
+              value={serviceForm.iconName || "home"}
+              onValueChange={(value) => setServiceForm({ ...serviceForm, iconName: value })}
+            >
+              <SelectTrigger className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-slate-700">
+                {iconOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="text-slate-900 dark:text-slate-100">
+                    <div className="flex items-center gap-2">{option.icon}{option.label}</div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Short Description *</Label>
+          <Textarea
+            value={serviceForm.shortDescription || ""}
+            onChange={(e) => setServiceForm({ ...serviceForm, shortDescription: e.target.value })}
+            placeholder="Brief description for the service card"
+            rows={2}
+            required
+            className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Full Description</Label>
+          <Textarea
+            value={serviceForm.description || ""}
+            onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+            placeholder="Detailed description of the service"
+            rows={4}
+            className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+          />
+        </div>
+      </div>
+
+      {/* Service Image */}
+      <div className="space-y-4">
+        <div className="border-b border-gray-200 dark:border-slate-700 pb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">Service Image</h3>
+        </div>
+
+        <MediaSelector
+          label="Service Image"
+          value={serviceForm.imageUrl || ""}
+          onChange={(value) =>
+            setServiceForm({
+              ...serviceForm,
+              imageUrl: Array.isArray(value) ? value[0] : value,
+            })
+          }
+          multipleUpload={false}
+        />
+      </div>
+
+      {/* Key Features */}
+      <div className="space-y-4">
+        <div className="border-b border-gray-200 dark:border-slate-700 pb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">Key Features</h3>
+        </div>
+
+        <div className="space-y-3">
+          {(serviceForm.keyFeatures || []).map((feature, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                value={feature}
+                onChange={(e) => updateKeyFeature(index, e.target.value)}
+                placeholder={`Feature ${index + 1}`}
+                className="flex-1 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => removeKeyFeature(index)}
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addKeyFeature}
+            className="flex items-center gap-2 bg-transparent text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+          >
+            <Plus className="h-4 w-4" />
+            Add Feature
+          </Button>
+        </div>
+      </div>
+
+      {/* Form Actions */}
+      <div className="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-slate-700">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowServiceModal(false)}
+          className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600"
+        >
+          Cancel
+        </Button>
+        <Button type="submit" className="btn-primary">
+          {editingService ? "Update Service" : "Create Service"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
 
         {/* Legal Content Modal */}
         <Dialog open={showLegalModal} onOpenChange={setShowLegalModal}>
-          <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingLegal
-                  ? `Edit ${legalType === "terms" ? "Terms & Conditions" : "Privacy Policy"}`
-                  : `Add ${legalType === "terms" ? "Terms & Conditions" : "Privacy Policy"}`}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={saveLegalContent} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input
-                    value={legalForm.title || ""}
-                    onChange={(e) => setLegalForm({ ...legalForm, title: e.target.value })}
-                    placeholder={`${legalType === "terms" ? "Terms & Conditions" : "Privacy Policy"} Title`}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Version</Label>
-                  <Input
-                    value={legalForm.version || ""}
-                    onChange={(e) => setLegalForm({ ...legalForm, version: e.target.value })}
-                    placeholder="1.0"
-                  />
-                </div>
-              </div>
+  <DialogContent className="bg-white dark:bg-slate-900 max-w-4xl max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="text-slate-900 dark:text-slate-100">
+        {editingLegal
+          ? `Edit ${legalType === "terms" ? "Terms & Conditions" : "Privacy Policy"}`
+          : `Add ${legalType === "terms" ? "Terms & Conditions" : "Privacy Policy"}`}
+      </DialogTitle>
+    </DialogHeader>
 
-              <div className="space-y-2">
-                <Label>Content *</Label>
-                {isClient && (
-                  <RichTextEditor
-                    value={legalForm.content || ""}
-                    onChange={(value) => setLegalForm((prev)=>({ ...prev, content: value }))}
-                  />
-                )}
-              </div>
+    <form onSubmit={saveLegalContent} className="space-y-6">
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="legalActive"
-                  checked={legalForm.isActive || false}
-                  onChange={(e) => setLegalForm({ ...legalForm, isActive: e.target.checked })}
-                  className="rounded"
-                />
-                <Label htmlFor="legalActive">Active Content</Label>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Title *</Label>
+          <Input
+            value={legalForm.title || ""}
+            onChange={(e) => setLegalForm({ ...legalForm, title: e.target.value })}
+            placeholder={`${legalType === "terms" ? "Terms & Conditions" : "Privacy Policy"} Title`}
+            required
+            className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Version</Label>
+          <Input
+            value={legalForm.version || ""}
+            onChange={(e) => setLegalForm({ ...legalForm, version: e.target.value })}
+            placeholder="1.0"
+            className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+          />
+        </div>
+      </div>
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                <Button type="button" variant="outline" onClick={() => setShowLegalModal(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="btn-primary">
-                  {editingLegal ? "Update Content" : "Create Content"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <div className="space-y-2">
+        <Label className="text-slate-700 dark:text-slate-300">Content *</Label>
+        {isClient && (
+          <RichTextEditor
+            value={legalForm.content || ""}
+            onChange={(value) => setLegalForm((prev) => ({ ...prev, content: value }))}
+            className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+          />
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="legalActive"
+          checked={legalForm.isActive || false}
+          onChange={(e) => setLegalForm({ ...legalForm, isActive: e.target.checked })}
+          className="rounded bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600"
+        />
+        <Label htmlFor="legalActive" className="text-slate-700 dark:text-slate-300">Active Content</Label>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-slate-700">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowLegalModal(false)}
+          className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600"
+        >
+          Cancel
+        </Button>
+        <Button type="submit" className="btn-primary">
+          {editingLegal ? "Update Content" : "Create Content"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
       </div>
     </AdminLayout>
   );

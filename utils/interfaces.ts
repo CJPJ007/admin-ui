@@ -130,3 +130,17 @@ export interface GalleryVideo {
   id: number,
   youtubeUrl: string,
 }
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  position: string;
+  description: string;
+  imageUrl: string;
+  email: string;
+  phone: string;
+  socialLinkedin: string;
+  socialTwitter: string;
+  displayOrder: number;
+  isActive: boolean;
+}
