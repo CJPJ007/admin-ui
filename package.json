@@ -62,6 +62,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^19",
     "react-hook-form": "^7.54.1",
+    "react-monaco-editor": "^0.59.0",
     "react-quill": "latest",
     "react-quill-new": "^3.4.6",
     "react-resizable-panels": "^2.1.7",
