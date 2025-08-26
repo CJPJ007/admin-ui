@@ -354,8 +354,8 @@ export default function AboutUsManagement() {
       setCompanyInfo(info[0] || null);
 
       // Set story content if exists
-      const storySection = aboutContent.find((c) => c.section === "our_story");
-      const mdStorySection = aboutContent.find((c) => c.section === "md_story");
+      const storySection = contentResJson.find((c) => c.section === "our_story");
+      const mdStorySection = contentResJson.find((c) => c.section === "md_story");
       if (storySection) {
         setStoryContent(storySection.content);
       }
