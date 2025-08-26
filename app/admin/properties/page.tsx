@@ -54,6 +54,7 @@ export default function Properties() {
     thumbnailImage: string
     virtualTourLink: string[]
     cents:string
+    propertyOfTheMonth:string
   }>({
     id: null,
     title: "",
@@ -75,7 +76,8 @@ export default function Properties() {
     pinCode: "",
     thumbnailImage: "",
     virtualTourLink: [""],
-    cents:""
+    cents:"",
+    propertyOfTheMonth:""
   })
   const [isEditing, setIsEditing] = useState(false)
   const [totalRecords, setTotalRecords] = useState(0)
@@ -181,7 +183,8 @@ export default function Properties() {
         pinCode: Number(formData.pinCode),
         thumbnailImage: formData.thumbnailImage,
         virtualTourLink: formData.virtualTourLink.filter((link) => link.trim()).join("#VIDEO#"),
-        cents:Number(formData.cents)
+        cents:Number(formData.cents),
+        propertyOfTheMonth: formData.propertyOfTheMonth === "true"
       }
 
       if (isEditing && formData.id) {
@@ -260,7 +263,8 @@ export default function Properties() {
       pinCode: String(property.pinCode),
       thumbnailImage: property.thumbnailImage,
       virtualTourLink: property.virtualTourLink?.split("#VIDEO#") || [""],
-      cents:String(property.cents)
+      cents:String(property.cents),
+      propertyOfTheMonth:String(property.propertyOfTheMonth)
     })
     setIsEditing(true)
     setShowCreateModal(true)
@@ -306,7 +310,8 @@ export default function Properties() {
       pinCode: "",
       thumbnailImage: "",
       virtualTourLink: [""],
-      cents:""
+      cents:"",
+      propertyOfTheMonth:""
     })
     setIsEditing(false)
   }
@@ -1057,6 +1062,20 @@ export default function Properties() {
                     <SelectContent className="bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                       <SelectItem value="false">Available</SelectItem>
                       <SelectItem value="true">Sold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="propertyOfTheMonth" className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
+                    Property of the Month
+                  </Label>
+                  <Select value={formData.propertyOfTheMonth} onValueChange={(value) => handleSelectChange("propertyOfTheMonth", value)}>
+                    <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
+                      <SelectItem value="true">True</SelectItem>
+                      <SelectItem value="false">False</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

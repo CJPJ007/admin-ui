@@ -162,6 +162,7 @@ export default function AboutUsManagement() {
 
   // Form states
   const [storyContent, setStoryContent] = useState("");
+  const [mdStoryContent, setMDStoryContent] = useState("");
   const [teamForm, setTeamForm] = useState<Partial<TeamMember>>({});
   const [valueForm, setValueForm] = useState<Partial<CompanyValue>>({});
 
@@ -353,9 +354,13 @@ export default function AboutUsManagement() {
       setCompanyInfo(info[0] || null);
 
       // Set story content if exists
-      const storySection = contentResJson && contentResJson.length>0? contentResJson[0]?.content:'';
+      const storySection = aboutContent.find((c) => c.section === "our_story");
+      const mdStorySection = aboutContent.find((c) => c.section === "md_story");
       if (storySection) {
-        setStoryContent(storySection);
+        setStoryContent(storySection.content);
+      }
+      if(mdStorySection) {
+        setMDStoryContent(mdStorySection.content);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -377,6 +382,32 @@ export default function AboutUsManagement() {
             section: "our_story",
             title: "Our Story",
             content: storyContent,
+          }),
+        });
+      }
+      fetchAllData();
+      alert("Story content saved successfully!");
+    } catch (error) {
+      console.error("Error saving story:", error);
+      alert("Failed to save story content");
+    }
+  };
+
+  const saveMDStoryContent = async () => {
+    try {
+      const mdStorySection = aboutContent.find((c) => c.section === "md_story");
+      if (mdStorySection) {
+        await api(`/api/admin/about-us-content/${mdStorySection.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ content: mdStoryContent }),
+        });
+      } else {
+        await api("/api/admin/about-us-content", {
+          method: "POST",
+          body: JSON.stringify({
+            section: "md_story",
+            title: "MD Story",
+            content: mdStorySection,
           }),
         });
       }
@@ -491,6 +522,10 @@ export default function AboutUsManagement() {
     setStoryContent(value);
   };
 
+  const handleMDStoryContentChange = (value: string) => {
+    setMDStoryContent(value);
+  };
+
   const handleDragEnd = (event:DragEndEvent) => {
   const { active, over } = event;
   if (!over || active.id === over.id) return;
@@ -570,7 +605,7 @@ export default function AboutUsManagement() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="team" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Team Members
@@ -578,6 +613,10 @@ export default function AboutUsManagement() {
             <TabsTrigger value="story" className="flex items-center gap-2">
               <Building className="h-4 w-4" />
               Our Story
+            </TabsTrigger>
+            <TabsTrigger value="mdStory" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              MD Story
             </TabsTrigger>
             <TabsTrigger value="values" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
@@ -613,8 +652,6 @@ export default function AboutUsManagement() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Story Content</Label>
-                  <div dangerouslySetInnerHTML={{ __html: storyContent }} className="prose max-w-none" >
-                    </div>
                   {isClient && (
                     <RichTextEditor
                       onChange={handleContentChange}
@@ -628,6 +665,36 @@ export default function AboutUsManagement() {
                 >
                   <Save className="h-4 w-4" />
                   Save Story Content
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Our Story Tab */}
+          <TabsContent value="mdStory">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  Edit MD Story Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>MD Story Content</Label>
+                  {isClient && (
+                    <RichTextEditor
+                      onChange={handleMDStoryContentChange}
+                      value={mdStoryContent}
+                    />
+                  )}
+                </div>
+                <Button
+                  onClick={saveMDStoryContent}
+                  className="flex items-center gap-2 btn-primary"
+                >
+                  <Save className="h-4 w-4" />
+                  Save MD Story Content
                 </Button>
               </CardContent>
             </Card>

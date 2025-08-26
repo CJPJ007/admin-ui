@@ -25,6 +25,7 @@ export interface Property {
   thumbnailImage: string;
   virtualTourLink: string;
   cents:number;
+  propertyOfTheMonth:boolean;
 }
 
 export interface FilterType {
