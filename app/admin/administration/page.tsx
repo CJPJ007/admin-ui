@@ -12,6 +12,7 @@ export default function Administration() {
     { icon: Trash2, title: "Cache Management", description: "Clear cache to make your site up to date", link: "/admin/cache-management" },
     { icon: Shield, title: "Customer Management", description: "Manage your customers", link: "/admin/customers" },
     { icon: MessageCirclePlus, title: "Notification Management", description: "Send global notification and view the recent notifications", link: "/admin/notifications" },
+    { icon: Users, title: "Referrals", description: "View and update referrals for users", link: "/admin/referrals" },
 
   ]
 

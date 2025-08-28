@@ -145,3 +145,14 @@ export interface TeamMember {
   displayOrder: number;
   isActive: boolean;
 }
+
+export interface Referral {
+  id:number;
+  email:string;
+  referredEmail:string;
+  referredName:string;
+  status:string;
+  referralAmount:number;
+  createdAt:string;
+  completedAt:string;
+}
