@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Check, AlertCircle, EyeOff, Eye } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -89,116 +90,114 @@ export default function AdminLogin() {
   ];
 
   return (
-  <div className="min-h-screen flex">
-  {/* Left Section (Decorative) */}
-  <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-white via-red-50 to-red-500 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-white relative overflow-hidden">
-    <div className="absolute inset-0 bg-black/20" />
-    <div className="relative z-10 flex flex-col justify-center p-12">
-      <h1 className="text-4xl font-bold mb-4">Ananta Realty</h1>
-      <p className="text-xl mb-8 opacity-90">
-        Ananta Lo Petubadi Anantamina Rabadi
-      </p>
-      <ul className="space-y-4">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center space-x-3">
-            <Check className="h-5 w-5 text-green-400 flex-shrink-0" />
-            <span className="text-lg">{feature}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </div>
+    <div className="min-h-screen flex">
+      {/* Left Section (Decorative) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-black relative overflow-hidden">
+        <img
+          src="/images/papa.jpeg"
+          alt="Decorative"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      </div>
 
-  {/* Right Section (Login Form) */}
-  <div className="flex-1 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
-    <div className="w-full max-w-md">
-      <Card className="bg-white dark:bg-gray-800 shadow-xl">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-            Ananta Realty
-          </CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-400">
-            Welcome back, Please sign in to your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+      {/* Right Section (Login Form) */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
+        <div className="w-full max-w-md">
+          <Card className="bg-white dark:bg-gray-800 shadow-xl">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                Ananta Realty
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Welcome back, Please sign in to your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="username"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Email
-              </Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Email here..."
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-                className="bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
-              />
-            </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="username"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Email
+                  </Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Email here..."
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
+                  />
+                </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Password
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPasswords.current ? "text" : "password"}
-                  placeholder="Enter your current password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="pr-12 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
-                />
+                {/* Password */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPasswords.current ? "text" : "password"}
+                      placeholder="Enter your current password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      className="pr-12 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => togglePasswordVisibility("current")}
+                    >
+                      {showPasswords.current ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Submit */}
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => togglePasswordVisibility("current")}
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
-                  {showPasswords.current ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
-                  )}
+                  {isLoading ? "Logging in..." : "Login to Dashboard"}
                 </Button>
-              </div>
-            </div>
 
-            {/* Submit */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-            >
-              {isLoading ? "Logging in..." : "Login to Dashboard"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+                <div className="text-center mt-4">
+                  <Link
+                    href="/admin/recover-password"
+                    className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
   );
 }

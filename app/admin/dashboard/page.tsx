@@ -30,6 +30,8 @@ export default function Dashboard() {
     { title: "Customers", value: "0", icon: Users, color: "bg-sky-500", link: "/admin/customers", field: "Customer", trend: "+2%", trendDirection: "up" },
     { title: "Sliders", value: "0", icon: Images, color: "bg-blue-600", link: "/admin/sliders", field: "Slider", trend: "0%", trendDirection: "neutral" },
     { title: "Agents", value: "0", icon: Users, color: "bg-green-600", link: "/admin/agents", field: "User", trend: "0%", trendDirection: "neutral" },
+    { title: "Admins", value: "0", icon: Users, color: "bg-green-600", link: "/admin/users", field: "User", trend: "0%", trendDirection: "neutral" },
+
   ])
 
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([])
@@ -40,12 +42,12 @@ export default function Dashboard() {
   const [currentActivityLogPage, setCurrentActivityLogPage] = useState(1)
   const activityLogPageSize = 10
 
-  async function fetchStats(field: string, condition: string) {
+  async function fetchStats(title:string,field: string, condition: string) {
     try {
       const count = await (await api(`/api/fieldSearch/count/${field}?query=${condition}`)).json()
       setStats((prevStats) =>
         prevStats.map((stat) =>
-          stat.field.toLowerCase() === field.toLowerCase()
+          stat.title.toLowerCase() === title.toLowerCase()
             ? { ...stat, value: count.toString() }
             : stat
         )
@@ -59,11 +61,12 @@ export default function Dashboard() {
     const fetchAllStats = async () => {
       setLoading(true)
       await Promise.all([
-        fetchStats("Property", ""),
-        fetchStats("Slider", ""),
-        fetchStats("Customer", ""),
-        fetchStats("Inquiry", ""),
-        fetchStats("User", "role=='Agent'")
+        fetchStats("Properties","Property", ""),
+        fetchStats("Sliders","Slider", ""),
+        fetchStats("Customers","Customer", ""),
+        fetchStats("Inquiries","Inquiry", ""),
+        fetchStats("Agents","User", "role=='Agent'"),
+        fetchStats("Admins","User", "role=='Admin'")
       ])
       setLoading(false)
     }

@@ -313,7 +313,7 @@ export default function Media() {
           >
             <CardContent className="p-4 text-center">
               {/* Checkbox - Always visible when showCheckboxes is true or item is selected */}
-              {(showCheckboxes || isSelected) && (
+              {(
                 <Checkbox
                   className="absolute top-2 left-2 z-10"
                   checked={!!isSelected}
@@ -501,34 +501,41 @@ export default function Media() {
 
         {/* Selection Info */}
         {selectedItems.length > 0 && (
-          <Card className="mb-6 bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-900">
-                    {selectedItems.length} item{selectedItems.length > 1 ? "s" : ""} selected
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedItems([])
-                      setShowCheckboxes(false)
-                    }}
-                  >
-                    Clear Selection
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Selected
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <Card className="mb-6 bg-blue-50 dark:bg-gray-800 border-blue-200 dark:border-gray-700">
+  <CardContent className="p-4">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+        <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
+          {selectedItems.length} item{selectedItems.length > 1 ? "s" : ""} selected
+        </span>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSelectedItems([]);
+            setShowCheckboxes(false);
+          }}
+          className="dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          Clear Selection
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setShowDeleteDialog(true)}
+          className="dark:bg-red-600 dark:hover:bg-red-700 dark:text-white"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete Selected
+        </Button>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+
         )}
 
         {/* Content */}

@@ -11,7 +11,9 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Ananta Realty Admin",
   description: "Admin dashboard for Ananta Realty",
-    generator: 'v0.dev'
+icons: {
+    icon: "/images/header-logo.png",
+  },    
 }
 
 

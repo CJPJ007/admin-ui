@@ -1487,6 +1487,9 @@ export default function AboutUsManagement() {
             <SelectContent className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
               <SelectItem value="MD">MD</SelectItem>
               <SelectItem value="CEO">CEO</SelectItem>
+              <SelectItem value="Manager">Manager</SelectItem>
+              <SelectItem value="Senior Technical Manager">Senior Technical Manager</SelectItem>
+              <SelectItem value="Technical Manager">Technical Manager</SelectItem>
               <SelectItem value="Manager (Admin)">Manager (Admin)</SelectItem>
               <SelectItem value="Manager (Marketing)">Manager (Marketing)</SelectItem>
               <SelectItem value="Senior Manager">Senior Manager</SelectItem>

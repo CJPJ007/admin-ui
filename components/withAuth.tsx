@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import SkeletonLoader from './SkeletonLoader'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 const withAuth = (WrappedComponent: React.ComponentType) => {
+  const unAuthenticatedRoutes = ['/login', '/admin/recover-password']
   const Wrapper = (props: any) => {
     const router = useRouter()
+    const pathname = usePathname();
     const [isAuthenticated, setIsAuthenticated] = useState(false)
 
     useEffect(() => {
@@ -18,14 +20,17 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
           
             setIsAuthenticated(true)
           } else {
+            if(!unAuthenticatedRoutes.includes(pathname))
             router.push('/login')
+            else router.push(pathname)
           }
         } catch (error) {
-          router.push('/login')
+          router.push('/login');
         }
       }
-
+      if (!unAuthenticatedRoutes.includes(pathname))
       checkAuth()
+      else setIsAuthenticated(true)
     }, [router])
 
     if (!isAuthenticated) {

@@ -13,6 +13,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const unAuthenticatedRoutes = ['/login', '/admin/recover-password']
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -28,8 +29,11 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
         if (response.ok) {
           setIsAuthenticated(true);
         } else {
+          if(!unAuthenticatedRoutes.includes(pathname)){
           setIsAuthenticated(false);
           router.push('/login');
+          }
+          else {setIsAuthenticated(true);router.push(pathname);}
         }
       } catch (error) {
         console.error("Authentication check failed:", error);

@@ -24,7 +24,7 @@ export interface Property {
   pinCode: number;
   thumbnailImage: string;
   virtualTourLink: string;
-  cents:number;
+  cents:string;
   propertyOfTheMonth:boolean;
 }
 
@@ -149,8 +149,11 @@ export interface TeamMember {
 export interface Referral {
   id:number;
   email:string;
+  mobile:string;
   referredEmail:string;
   referredName:string;
+  referredMobile:string;
+  referredReferralCode:string;
   status:string;
   referralAmount:number;
   createdAt:string;

@@ -227,7 +227,7 @@ export default function Users() {
     // Update URL with edit parameters
     router.push(`/admin/users?edit=true&id=${user.id}`)
     setFormData({
-       id: null,
+       id: user.id,
     username: user.username,
     password: "",
     name: user.name,
@@ -752,9 +752,8 @@ export default function Users() {
                 <span>{formData.role}</span>
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="agent">Agent</SelectItem>
+                <SelectItem value="ADMIN">ADMIN</SelectItem>
+                <SelectItem value="AGENT">AGENT</SelectItem>
               </SelectContent>
             </Select>
           </div>

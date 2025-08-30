@@ -23,6 +23,7 @@ import {
   Clock,
   User,
   Briefcase,
+  FileQuestion,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -110,6 +111,13 @@ export default function CacheManagement() {
       name: "Services",
       description: "Clear services cache",
       icon: Briefcase,
+      status: "active",
+    },
+    {
+      id: "faqs",
+      name: "FAQs",
+      description: "Clear FAQs cache",
+      icon: FileQuestion,
       status: "active",
     },
   ]);

@@ -50,15 +50,19 @@ export default function Referrals() {
   const [formData, setFormData] = useState<{
     id:number;
   email:string;
+  mobile:string;
   referredEmail:string;
   referredName:string;
+  referredMobile:string;
   status:string;
   referralAmount:number
   }>({
     id: 0,
     email: "",
+    mobile: "",
     referredEmail: "",
     referredName: "",
+    referredMobile: "",
     status: "PENDING",
     referralAmount: 0
   })
@@ -169,7 +173,9 @@ export default function Referrals() {
     setFormData({
       id: referral.id,
       email: referral.email,
+      mobile: referral.mobile,
       referredEmail: referral.referredEmail,
+      referredMobile: referral.referredMobile,
       referredName: referral.referredName,
       status: referral.status,
       referralAmount: referral.referralAmount
@@ -199,7 +205,9 @@ export default function Referrals() {
       referredEmail: "",
       referredName: "",
       status: "PENDING",
-      referralAmount: 0
+      referralAmount: 0,
+      mobile: "",
+      referredMobile: ""
     })
     setIsEditing(false)
   }
@@ -336,7 +344,9 @@ export default function Referrals() {
                   <span>{filter.field || "Select field"}</span>
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="referredName">Referred Name</SelectItem>
+                  <SelectItem value="referredEmail">Referred Email</SelectItem>
+                  <SelectItem value="referredMobile">Referred Mobile</SelectItem>
                   <SelectItem value="email">Email</SelectItem>
                   <SelectItem value="mobile">Mobile</SelectItem>
                 </SelectContent>
@@ -403,8 +413,10 @@ export default function Referrals() {
               />
             </TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Mobile</TableHead>
             <TableHead>Referred Email</TableHead>
             <TableHead>Referred Name</TableHead>
+            <TableHead>Referred Mobile</TableHead>
             <TableHead>Referral Amount</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
@@ -432,8 +444,10 @@ export default function Referrals() {
               >
                 {referral.email}
               </TableCell>
+              <TableCell>{referral.mobile}</TableCell>
               <TableCell>{referral.referredEmail}</TableCell>
               <TableCell>{referral.referredName}</TableCell>
+              <TableCell>{referral.referredMobile}</TableCell>
               <TableCell>
                 {referral.referralAmount}
               </TableCell>
