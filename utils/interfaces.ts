@@ -136,6 +136,7 @@ export interface TeamMember {
   id: number;
   name: string;
   position: string;
+  qualification: string;
   description: string;
   imageUrl: string;
   email: string;

@@ -1503,18 +1503,6 @@ export default function AboutUsManagement() {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-slate-700 dark:text-slate-300">Description</Label>
-        <Textarea
-          value={teamForm.description || ""}
-          onChange={(e) =>
-            setTeamForm({ ...teamForm, description: e.target.value })
-          }
-          rows={3}
-          className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
-        />
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-slate-700 dark:text-slate-300">Email</Label>
@@ -1533,6 +1521,31 @@ export default function AboutUsManagement() {
             value={teamForm.phone || ""}
             onChange={(e) =>
               setTeamForm({ ...teamForm, phone: e.target.value })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Education Qualification</Label>
+          <Input
+            value={teamForm.qualification || ""}
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, qualification: e.target.value })
+            }
+            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 dark:text-slate-300">Display Order</Label>
+          <Input
+            value={teamForm.displayOrder || ""}
+            type="number"
+            onChange={(e) =>
+              setTeamForm({ ...teamForm, displayOrder: parseInt(e.target.value) })
             }
             className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
           />
@@ -1560,17 +1573,7 @@ export default function AboutUsManagement() {
             className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
           />
         </div>
-        <div className="space-y-2">
-          <Label className="text-slate-700 dark:text-slate-300">Display Order</Label>
-          <Input
-            value={teamForm.displayOrder || ""}
-            type="number"
-            onChange={(e) =>
-              setTeamForm({ ...teamForm, displayOrder: parseInt(e.target.value) })
-            }
-            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
-          />
-        </div>
+        
       </div>
 
       <div className="space-y-2">
@@ -1584,6 +1587,18 @@ export default function AboutUsManagement() {
             })
           }
           multipleUpload={false}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-slate-700 dark:text-slate-300">Description</Label>
+        <Textarea
+          value={teamForm.description || ""}
+          onChange={(e) =>
+            setTeamForm({ ...teamForm, description: e.target.value })
+          }
+          rows={3}
+          className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700"
         />
       </div>
 
