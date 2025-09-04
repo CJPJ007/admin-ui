@@ -46,6 +46,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 
 export default function Properties() {
   const searchParams = useSearchParams();
@@ -389,6 +390,14 @@ export default function Properties() {
   };
 
   const addVirtualTourLink = () => {
+    if(formData.virtualTourLink.length === 20){
+      toast({
+          title: "Add Virtual Tour Link Error",
+          description: "Cannot add more than 10 links",
+          variant: "destructive",
+        })
+        return;
+    }
     setFormData({
       ...formData,
       virtualTourLink: [...formData.virtualTourLink, ""],
@@ -1177,7 +1186,7 @@ export default function Properties() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Label className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
-                      Virtual Tour Links
+                      Virtual Tour Links (Only 20 allowed)
                     </Label>
                     <Button
                       type="button"
