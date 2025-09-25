@@ -1,90 +1,62 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useEffect } from "react";
-import AdminLayout from "@/components/layout/admin-layout";
-import api from "@/utils/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Filter,
-  Plus,
-  RotateCcw,
-  Edit,
-  Trash2,
-  X,
-  Loader2,
-} from "lucide-react";
-import type { FilterType, Property } from "@/utils/interfaces";
-import { convertToSearchCriteriaList } from "@/lib/utils";
-import MediaSelector from "@/components/MediaSelector";
-import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import RichTextEditor from "@/components/RichTextEditor";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
+import type React from "react"
+import { useState, useEffect } from "react"
+import AdminLayout from "@/components/layout/admin-layout"
+import api from "@/utils/api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Filter, Plus, RotateCcw, Edit, Trash2, X, Loader2, Download } from "lucide-react"
+import type { FilterType, Property } from "@/utils/interfaces"
+import { convertToSearchCriteriaList } from "@/lib/utils"
+import MediaSelector from "@/components/MediaSelector"
+import { useSearchParams, useRouter } from "next/navigation"
+import Link from "next/link"
+import RichTextEditor from "@/components/RichTextEditor"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/hooks/use-toast"
 
 export default function Properties() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FilterType[]>([
-    { field: "", operator: "equals", value: "" },
-  ]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [loading, setLoading] = useState(true);
-  const [reloading, setReloading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [properties, setProperties] = useState<Property[]>([])
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [filters, setFilters] = useState<FilterType[]>([{ field: "", operator: "equals", value: "" }])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(25)
+  const [loading, setLoading] = useState(true)
+  const [reloading, setReloading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState<{
-    id: number | null;
-    title: string;
-    description: string;
-    price: string;
-    location: string;
-    type: string;
-    bedrooms: string;
-    bathrooms: string;
-    areaSqft: string;
-    featured: string;
-    sold: string;
-    slug: string;
-    latitude: string;
-    longitude: string;
-    seoTitle: string;
-    seoDescription: string;
-    images: string[];
-    pinCode: string;
-    thumbnailImage: string;
-    virtualTourLink: string[];
-    cents: string[];
-    propertyOfTheMonth: string;
+    id: number | null
+    title: string
+    description: string
+    price: string
+    location: string
+    type: string
+    bedrooms: string
+    bathrooms: string
+    areaSqft: string
+    featured: string
+    sold: string
+    slug: string
+    latitude: string
+    longitude: string
+    seoTitle: string
+    seoDescription: string
+    images: string[]
+    pinCode: string
+    thumbnailImage: string
+    virtualTourLink: string[]
+    cents: string[]
+    propertyOfTheMonth: string
   }>({
     id: null,
     title: "",
@@ -108,92 +80,89 @@ export default function Properties() {
     virtualTourLink: [""],
     cents: [],
     propertyOfTheMonth: "",
-  });
-  const [isEditing, setIsEditing] = useState(false);
-  const [totalRecords, setTotalRecords] = useState(0);
+  })
+  const [isEditing, setIsEditing] = useState(false)
+  const [totalRecords, setTotalRecords] = useState(0)
 
   useEffect(() => {
-    fetchProperties();
-  }, [currentPage]);
+    fetchProperties()
+  }, [currentPage])
 
   // Handle URL parameters
   useEffect(() => {
-    const editParam = searchParams.get("edit");
-    const idParam = searchParams.get("id");
-    const createParam = searchParams.get("create");
+    const editParam = searchParams.get("edit")
+    const idParam = searchParams.get("id")
+    const createParam = searchParams.get("create")
 
     if (editParam === "true" && idParam) {
-      const propertyId = Number.parseInt(idParam);
+      const propertyId = Number.parseInt(idParam)
       if (!isNaN(propertyId)) {
         // Find property and open edit modal
-        const property = properties.find((p) => p.id === propertyId);
+        const property = properties.find((p) => p.id === propertyId)
         if (property) {
-          handleEditWithUrl(property);
+          handleEditWithUrl(property)
         } else {
           // If property not found in current list, fetch it
-          fetchPropertyById(propertyId);
+          fetchPropertyById(propertyId)
         }
       }
     } else if (createParam === "true") {
-      resetForm();
-      setShowCreateModal(true);
+      resetForm()
+      setShowCreateModal(true)
     }
-  }, [searchParams, properties]);
+  }, [searchParams, properties])
 
   const fetchProperties = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const searchCriteriaList = convertToSearchCriteriaList(filters);
+      const searchCriteriaList = convertToSearchCriteriaList(filters)
       const data = await (
-        await api(
-          `/api/fieldSearch/advancedSearch/Property?page=${currentPage}&size=${itemsPerPage}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(searchCriteriaList),
-          }
-        )
-      ).json();
-      setProperties(data.data || []);
-      setTotalRecords(data.totalRecords || 0);
+        await api(`/api/fieldSearch/advancedSearch/Property?page=${currentPage}&size=${itemsPerPage}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(searchCriteriaList),
+        })
+      ).json()
+      setProperties(data.data || [])
+      setTotalRecords(data.totalRecords || 0)
     } catch (error) {
-      console.error("Error fetching properties:", error);
+      console.error("Error fetching properties:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetchPropertyById = async (propertyId: number) => {
     try {
-      const response = await api(`/api/admin/properties/${propertyId}`);
-      const property = await response.json();
+      const response = await api(`/api/admin/properties/${propertyId}`)
+      const property = await response.json()
       if (property) {
-        handleEditWithUrl(property);
+        handleEditWithUrl(property)
       }
     } catch (error) {
-      console.error("Error fetching property:", error);
+      console.error("Error fetching property:", error)
       // Clear URL params if property not found
-      router.replace("/admin/properties");
+      router.replace("/admin/properties")
     }
-  };
+  }
 
   const handleReload = async () => {
-    setReloading(true);
+    setReloading(true)
     try {
-      await fetchProperties();
-      setCurrentPage(1);
-      setFilters([{ field: "", operator: "equals", value: "" }]);
-      setShowFilters(false);
+      await fetchProperties()
+      setCurrentPage(1)
+      setFilters([{ field: "", operator: "equals", value: "" }])
+      setShowFilters(false)
     } finally {
-      setReloading(false);
+      setReloading(false)
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+    e.preventDefault()
+    setSubmitting(true)
 
     try {
       const propertyData = {
@@ -215,69 +184,66 @@ export default function Properties() {
         images: formData.images.map((img) => ({ imageUrl: img })),
         pinCode: Number(formData.pinCode),
         thumbnailImage: formData.thumbnailImage,
-        virtualTourLink: formData.virtualTourLink
-          .filter((link) => link.trim())
-          .join("#VIDEO#"),
-        cents: formData.cents.filter((link) => link.trim())
-          .join("#CENTS#"),
+        virtualTourLink: formData.virtualTourLink.filter((link) => link.trim()).join("#VIDEO#"),
+        cents: formData.cents.filter((link) => link.trim()).join("#CENTS#"),
         propertyOfTheMonth: formData.propertyOfTheMonth === "true",
-      };
+      }
 
       if (isEditing && formData.id) {
         await api(`/api/admin/properties/${formData.id}`, {
           method: "PUT",
           body: JSON.stringify(propertyData),
-        });
+        })
       } else {
         await api("/api/admin/properties", {
           method: "POST",
           body: JSON.stringify(propertyData),
-        });
+        })
       }
 
-      fetchProperties();
-      resetForm();
-      setShowCreateModal(false);
-      router.replace("/admin/properties");
+      fetchProperties()
+      resetForm()
+      setShowCreateModal(false)
+      router.replace("/admin/properties")
     } catch (error) {
-      console.error("Error saving property:", error);
-      alert(`Failed to save property: ${error}`);
+      console.error("Error saving property:", error)
+      alert(`Failed to save property: ${error}`)
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.id]: e.target.value,
-    }));
-  };
+    }))
+  }
 
   const handleSelectChange = (field: string, value: string) => {
     setFormData({
       ...formData,
       [field]: value,
-    });
-  };
+    })
+  }
 
   const handleThumbnailChange = (value: string | string[]) => {
     setFormData({
       ...formData,
       thumbnailImage: Array.isArray(value) ? value[0] || "" : value,
-    });
-  };
+    })
+  }
 
   const handleImagesChange = (value: string | string[]) => {
     setFormData({
       ...formData,
       images: Array.isArray(value) ? value : [value],
-    });
-  };
+    })
+  }
 
   const handleEditWithUrl = (property: Property) => {
     // Update URL with edit parameters
-    router.push(`/admin/properties?edit=true&id=${property.id}`);
+    router.push(`/admin/properties?edit=true&id=${property.id}`)
     setFormData({
       id: property.id,
       title: property.title,
@@ -301,28 +267,28 @@ export default function Properties() {
       virtualTourLink: property.virtualTourLink?.split("#VIDEO#") || [""],
       cents: property.cents.split("#CENTS#") || [""],
       propertyOfTheMonth: String(property.propertyOfTheMonth),
-    });
-    setIsEditing(true);
-    setShowCreateModal(true);
-  };
+    })
+    setIsEditing(true)
+    setShowCreateModal(true)
+  }
 
   const handleEdit = (property: Property) => {
-    handleEditWithUrl(property);
-  };
+    handleEditWithUrl(property)
+  }
 
   const handleDelete = async (id: number | null) => {
     if (confirm("Are you sure you want to delete this property?")) {
       try {
         await api(`/api/admin/properties/${id}`, {
           method: "DELETE",
-        });
-        fetchProperties();
+        })
+        fetchProperties()
       } catch (error) {
-        console.error("Error deleting property:", error);
-        alert(`Failed to delete property: ${error}`);
+        console.error("Error deleting property:", error)
+        alert(`Failed to delete property: ${error}`)
       }
     }
-  };
+  }
 
   const resetForm = () => {
     setFormData({
@@ -348,117 +314,250 @@ export default function Properties() {
       virtualTourLink: [""],
       cents: [""],
       propertyOfTheMonth: "",
-    });
-    setIsEditing(false);
-  };
+    })
+    setIsEditing(false)
+  }
 
   const addFilter = () => {
-    setFilters([...filters, { field: "", operator: "equals", value: "" }]);
-  };
+    setFilters([...filters, { field: "", operator: "equals", value: "" }])
+  }
 
-  const updateFilter = (
-    index: number,
-    key: keyof FilterType,
-    value: string
-  ) => {
-    const newFilters = [...filters];
-    newFilters[index][key] = value;
-    setFilters(newFilters);
-  };
+  const updateFilter = (index: number, key: keyof FilterType, value: string) => {
+    const newFilters = [...filters]
+    newFilters[index][key] = value
+    setFilters(newFilters)
+  }
 
   const removeFilter = (index: number) => {
     if (filters.length > 1) {
-      setFilters(filters.filter((_, i) => i !== index));
+      setFilters(filters.filter((_, i) => i !== index))
     }
-  };
+  }
 
   const applyFilters = () => {
-    fetchProperties();
-    setShowFilters(false);
-  };
+    fetchProperties()
+    setShowFilters(false)
+  }
 
-  const handleVirtualTourLinkChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const index = Number(event.target.dataset.index);
-    const value = event.target.value;
+  const handleVirtualTourLinkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const index = Number(event.target.dataset.index)
+    const value = event.target.value
     setFormData((prev) => {
-      const updatedLinks = [...prev.virtualTourLink];
-      updatedLinks[index] = value;
-      return { ...prev, virtualTourLink: updatedLinks };
-    });
-  };
+      const updatedLinks = [...prev.virtualTourLink]
+      updatedLinks[index] = value
+      return { ...prev, virtualTourLink: updatedLinks }
+    })
+  }
 
   const addVirtualTourLink = () => {
-    if(formData.virtualTourLink.length === 20){
+    if (formData.virtualTourLink.length === 20) {
       toast({
-          title: "Add Virtual Tour Link Error",
-          description: "Cannot add more than 10 links",
-          variant: "destructive",
-        })
-        return;
+        title: "Add Virtual Tour Link Error",
+        description: "Cannot add more than 10 links",
+        variant: "destructive",
+      })
+      return
     }
     setFormData({
       ...formData,
       virtualTourLink: [...formData.virtualTourLink, ""],
-    });
-  };
-  
+    })
+  }
 
   const removeVirtualTourLink = (index: number) => {
     if (formData.virtualTourLink.length > 1) {
-      const updatedLinks = formData.virtualTourLink.filter(
-        (_, i) => i !== index
-      );
-      setFormData({ ...formData, virtualTourLink: updatedLinks });
+      const updatedLinks = formData.virtualTourLink.filter((_, i) => i !== index)
+      setFormData({ ...formData, virtualTourLink: updatedLinks })
     }
-  };
+  }
 
-  const handleCentChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const index = Number(event.target.dataset.index);
-    const value = event.target.value;
+  const handleCentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const index = Number(event.target.dataset.index)
+    const value = event.target.value
     setFormData((prev) => {
-      const updatedCents = [...prev.cents];
-      updatedCents[index] = value;
-      return { ...prev, cents: updatedCents };
-    });
-  };
+      const updatedCents = [...prev.cents]
+      updatedCents[index] = value
+      return { ...prev, cents: updatedCents }
+    })
+  }
 
   const addCent = () => {
     setFormData({
       ...formData,
       cents: [...formData.cents, ""],
-    });
-  };
-
-
+    })
+  }
 
   const removeCent = (index: number) => {
     if (formData.cents.length > 1) {
-      const updatedCents = formData.cents.filter(
-        (_, i) => i !== index
-      );
-      setFormData({ ...formData, cents: updatedCents });
+      const updatedCents = formData.cents.filter((_, i) => i !== index)
+      setFormData({ ...formData, cents: updatedCents })
     }
-  };
+  }
 
   const handleCreateWithUrl = () => {
-    router.push("/admin/properties?create=true");
-  };
+    router.push("/admin/properties?create=true")
+  }
 
   const handleCloseModal = () => {
-    setShowCreateModal(false);
-    resetForm();
+    setShowCreateModal(false)
+    resetForm()
     // Clear URL params when closing modal
-    router.replace("/admin/properties");
-  };
+    router.replace("/admin/properties")
+  }
 
   // Pagination logic
-  const totalPages = Math.ceil(totalRecords / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const totalPages = Math.ceil(totalRecords / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+
+  const exportToHTML = () => {
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Properties Export</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .status-available {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-sold {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .price {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .export-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .property-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Properties Export Report</h1>
+        <div class="export-info">
+            <p>Export Date: ${new Date().toLocaleDateString()}</p>
+            <p>Total Properties: ${properties.length}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Property Title</th>
+                    <th>Price (INR)</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Bedrooms</th>
+                    <th>Bathrooms</th>
+                    <th>Area (sqft)</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${properties
+                  .map(
+                    (property) => `
+                    <tr>
+                        <td>${property.id}</td>
+                        <td>
+                            <strong>${property.title}</strong>
+                            <br>
+                            <small style="color: #666;">${property.bedrooms} bed, ${property.bathrooms} bath</small>
+                        </td>
+                        <td class="price">${property.price.toLocaleString()} INR</td>
+                        <td>
+                            <span class="${property.sold ? "status-sold" : "status-available"}">
+                                ${property.sold ? "Sold" : "Available"}
+                            </span>
+                        </td>
+                        <td>${property.type}</td>
+                        <td>${property.location}</td>
+                        <td>${property.bedrooms}</td>
+                        <td>${property.bathrooms}</td>
+                        <td>${property.areaSqft}</td>
+                    </tr>
+                `,
+                  )
+                  .join("")}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`
+
+    // Create and download the HTML file
+    const blob = new Blob([htmlContent], { type: "text/html" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `properties-export-${new Date().toISOString().split("T")[0]}.html`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: "Export Successful",
+      description: "Properties table has been exported as HTML file",
+    })
+  }
 
   if (loading) {
     return (
@@ -471,7 +570,7 @@ export default function Properties() {
           </div>
         </div>
       </AdminLayout>
-    );
+    )
   }
 
   return (
@@ -493,9 +592,7 @@ export default function Properties() {
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-5">
-            Properties
-          </h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-5">Properties</h1>
 
           {/* Action Bar */}
           <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -510,10 +607,7 @@ export default function Properties() {
                   Filters
                 </Button>
 
-                <Button
-                  onClick={handleCreateWithUrl}
-                  className="flex items-center gap-2 btn-primary"
-                >
+                <Button onClick={handleCreateWithUrl} className="flex items-center gap-2 btn-primary">
                   <Plus className="h-4 w-4" />
                   Create
                 </Button>
@@ -522,14 +616,19 @@ export default function Properties() {
                   variant="outline"
                   onClick={handleReload}
                   disabled={reloading}
-                  className="flex items-center gap-2 btn-primary dark:border-gray-600 dark:text-gray-200"
+                  className="flex items-center gap-2 btn-primary dark:border-gray-600 dark:text-gray-200 bg-transparent"
                 >
-                  {reloading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RotateCcw className="h-4 w-4" />
-                  )}
+                  {reloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                   {reloading ? "Loading..." : "Reload"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={exportToHTML}
+                  className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-200 bg-transparent"
+                >
+                  <Download className="h-4 w-4" />
+                  Export HTML
                 </Button>
               </div>
             </CardContent>
@@ -540,9 +639,7 @@ export default function Properties() {
         {showFilters && (
           <Card className="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                Filters
-              </CardTitle>
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">Filters</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -555,12 +652,7 @@ export default function Properties() {
             <CardContent>
               {filters.map((filter, index) => (
                 <div key={index} className="flex gap-3 mb-3 items-center">
-                  <Select
-                    value={filter.field}
-                    onValueChange={(value) =>
-                      updateFilter(index, "field", value)
-                    }
-                  >
+                  <Select value={filter.field} onValueChange={(value) => updateFilter(index, "field", value)}>
                     <SelectTrigger className="w-40 dark:bg-gray-900 dark:border-gray-600">
                       <SelectValue placeholder="Select field" />
                     </SelectTrigger>
@@ -574,12 +666,7 @@ export default function Properties() {
                     </SelectContent>
                   </Select>
 
-                  <Select
-                    value={filter.operator}
-                    onValueChange={(value) =>
-                      updateFilter(index, "operator", value)
-                    }
-                  >
+                  <Select value={filter.operator} onValueChange={(value) => updateFilter(index, "operator", value)}>
                     <SelectTrigger className="w-32 dark:bg-gray-900 dark:border-gray-600">
                       <SelectValue placeholder="Operator" />
                     </SelectTrigger>
@@ -594,9 +681,7 @@ export default function Properties() {
                   <Input
                     placeholder="Value"
                     value={filter.value}
-                    onChange={(e) =>
-                      updateFilter(index, "value", e.target.value)
-                    }
+                    onChange={(e) => updateFilter(index, "value", e.target.value)}
                     className="w-48 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                   />
 
@@ -617,7 +702,7 @@ export default function Properties() {
                 <Button
                   variant="outline"
                   onClick={addFilter}
-                  className="dark:border-gray-600 dark:text-gray-200"
+                  className="dark:border-gray-600 dark:text-gray-200 bg-transparent"
                 >
                   Add additional filter
                 </Button>
@@ -646,15 +731,12 @@ export default function Properties() {
             </TableHeader>
             <TableBody>
               {properties.map((property) => (
-                <TableRow
-                  key={property.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                >
+                <TableRow key={property.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <TableCell className="font-medium">{property.id}</TableCell>
                   <TableCell>
                     <img
                       src={
-                        `/images/${property.thumbnailImage}` ||
+                        `/images/${property.thumbnailImage || "/placeholder.svg"}` ||
                         "/placeholder.svg?height=40&width=40"
                       }
                       alt={property.title}
@@ -674,14 +756,9 @@ export default function Properties() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-semibold">
-                    {property.price.toLocaleString()} INR
-                  </TableCell>
+                  <TableCell className="font-semibold">{property.price.toLocaleString()} INR</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={property.sold ? "destructive" : "default"}
-                      className="dark:bg-gray-600"
-                    >
+                    <Badge variant={property.sold ? "destructive" : "default"} className="dark:bg-gray-600">
                       {property.sold ? "Sold" : "Available"}
                     </Badge>
                   </TableCell>
@@ -711,10 +788,7 @@ export default function Properties() {
               ))}
               {properties.length === 0 && (
                 <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <TableCell colSpan={8} className="text-center text-gray-500 dark:text-gray-400">
                     No properties found
                   </TableCell>
                 </TableRow>
@@ -725,8 +799,7 @@ export default function Properties() {
           {/* Pagination */}
           <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)}{" "}
-              in {totalRecords} records
+              Show from {startIndex + 1} to {Math.min(endIndex, totalRecords)} in {totalRecords} records
             </div>
 
             <div className="flex gap-2 items-center">
@@ -741,7 +814,7 @@ export default function Properties() {
               </Button>
 
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
+                const page = i + 1
                 return (
                   <Button
                     key={page}
@@ -752,15 +825,13 @@ export default function Properties() {
                   >
                     {page}
                   </Button>
-                );
+                )
               })}
 
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
                 className="btn-primary dark:border-gray-600 dark:text-gray-200"
               >
@@ -774,8 +845,8 @@ export default function Properties() {
         <Dialog
           open={showCreateModal}
           onOpenChange={(open) => {
-            if (!open) handleCloseModal();
-            else setShowCreateModal(true);
+            if (!open) handleCloseModal()
+            else setShowCreateModal(true)
           }}
         >
           <DialogContent className="max-w-6xl max-h-[90vh] bg-white dark:bg-gray-900 overflow-y-auto border border-gray-200 dark:border-gray-700">
@@ -790,12 +861,8 @@ export default function Properties() {
               {/* Basic Information Section */}
               <div className="space-y-4">
                 <div className="border-b border-gray-200 pb-2">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Basic Information
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Enter the basic details of the property
-                  </p>
+                  <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                  <p className="text-sm text-gray-600">Enter the basic details of the property</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -832,7 +899,6 @@ export default function Properties() {
                       className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                     />
                   </div>
-                  
                 </div>
 
                 <div className="space-y-2">
@@ -861,44 +927,44 @@ export default function Properties() {
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Label className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
-                        Cent
-                      </Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addCent}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50 bg-transparent"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {formData.cents.map((cent, index) => (
-                      <div key={index} className="flex gap-2 items-center">
-                        <Input
-                          placeholder="1Cent = 1000INR"
-                          value={cent}
-                          onChange={handleCentChange}
-                          data-index={index}
-                          className="flex-1 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
-                        />
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeCent(index)}
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
+                      Cent
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addCent}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50 bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
+
+                  {formData.cents.map((cent, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="1Cent = 1000INR"
+                        value={cent}
+                        onChange={handleCentChange}
+                        data-index={index}
+                        className="flex-1 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+                      />
+                      {index > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeCent(index)}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Property Details Section */}
@@ -936,12 +1002,7 @@ export default function Properties() {
                     >
                       Property Type *
                     </Label>
-                    <Select
-                      value={formData.type}
-                      onValueChange={(value) =>
-                        handleSelectChange("type", value)
-                      }
-                    >
+                    <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)}>
                       <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                         <SelectValue placeholder="Select property type" />
                       </SelectTrigger>
@@ -950,8 +1011,7 @@ export default function Properties() {
                         <SelectItem value="Villa">Villa</SelectItem>
                         <SelectItem value="Condo">Condo</SelectItem>
                         <SelectItem value="TownHouse">TownHouse</SelectItem>
-                        <SelectItem value="Luxury">Luxury</SelectItem>{" "}
-                        <SelectItem value="Luxury">Luxury</SelectItem>
+                        <SelectItem value="Luxury">Luxury</SelectItem> <SelectItem value="Luxury">Luxury</SelectItem>
                         <SelectItem value="Plot">Plot</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1243,12 +1303,7 @@ export default function Properties() {
                     >
                       Featured Property
                     </Label>
-                    <Select
-                      value={formData.featured}
-                      onValueChange={(value) =>
-                        handleSelectChange("featured", value)
-                      }
-                    >
+                    <Select value={formData.featured} onValueChange={(value) => handleSelectChange("featured", value)}>
                       <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                         <SelectValue />
                       </SelectTrigger>
@@ -1265,12 +1320,7 @@ export default function Properties() {
                     >
                       Property Status
                     </Label>
-                    <Select
-                      value={formData.sold}
-                      onValueChange={(value) =>
-                        handleSelectChange("sold", value)
-                      }
-                    >
+                    <Select value={formData.sold} onValueChange={(value) => handleSelectChange("sold", value)}>
                       <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                         <SelectValue />
                       </SelectTrigger>
@@ -1289,9 +1339,7 @@ export default function Properties() {
                     </Label>
                     <Select
                       value={formData.propertyOfTheMonth}
-                      onValueChange={(value) =>
-                        handleSelectChange("propertyOfTheMonth", value)
-                      }
+                      onValueChange={(value) => handleSelectChange("propertyOfTheMonth", value)}
                     >
                       <SelectTrigger className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200">
                         <SelectValue />
@@ -1307,18 +1355,10 @@ export default function Properties() {
 
               {/* Form Actions */}
               <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCloseModal}
-                >
+                <Button type="button" variant="outline" onClick={handleCloseModal}>
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn-primary"
-                >
+                <Button type="submit" disabled={submitting} className="btn-primary">
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -1336,5 +1376,5 @@ export default function Properties() {
         </Dialog>
       </div>
     </AdminLayout>
-  );
+  )
 }
