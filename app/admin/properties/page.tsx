@@ -57,6 +57,7 @@ export default function Properties() {
     virtualTourLink: string[]
     cents: string[]
     propertyOfTheMonth: string
+    googleMapsUrl:string
   }>({
     id: null,
     title: "",
@@ -80,6 +81,7 @@ export default function Properties() {
     virtualTourLink: [""],
     cents: [],
     propertyOfTheMonth: "",
+    googleMapsUrl:""
   })
   const [isEditing, setIsEditing] = useState(false)
   const [totalRecords, setTotalRecords] = useState(0)
@@ -187,6 +189,7 @@ export default function Properties() {
         virtualTourLink: formData.virtualTourLink.filter((link) => link.trim()).join("#VIDEO#"),
         cents: formData.cents.filter((link) => link.trim()).join("#CENTS#"),
         propertyOfTheMonth: formData.propertyOfTheMonth === "true",
+        googleMapsUrl: formData.googleMapsUrl
       }
 
       if (isEditing && formData.id) {
@@ -267,6 +270,7 @@ export default function Properties() {
       virtualTourLink: property.virtualTourLink?.split("#VIDEO#") || [""],
       cents: property.cents.split("#CENTS#") || [""],
       propertyOfTheMonth: String(property.propertyOfTheMonth),
+      googleMapsUrl:property.googleMapsUrl
     })
     setIsEditing(true)
     setShowCreateModal(true)
@@ -314,6 +318,7 @@ export default function Properties() {
       virtualTourLink: [""],
       cents: [""],
       propertyOfTheMonth: "",
+      googleMapsUrl:""
     })
     setIsEditing(false)
   }
@@ -1161,6 +1166,23 @@ export default function Properties() {
                       value={formData.longitude}
                       onChange={handleInputChange}
                       required
+                      className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="googleMapsUrl"
+                      className="text-sm font-medium text-gray-700 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+                    >
+                      Google Maps URL
+                    </Label>
+                    <Input
+                      id="googleMapsUrl"
+                      type="text"
+                      step="any"
+                      placeholder="Enter Google MapsUrl"
+                      value={formData.googleMapsUrl}
+                      onChange={handleInputChange}
                       className="w-full dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
                     />
                   </div>

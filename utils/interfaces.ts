@@ -26,6 +26,7 @@ export interface Property {
   virtualTourLink: string;
   cents:string;
   propertyOfTheMonth:boolean;
+  googleMapsUrl:string
 }
 
 export interface FilterType {
