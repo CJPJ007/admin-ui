@@ -120,6 +120,9 @@ interface CompanyInfo {
   latitude: number;
   longitude: number;
   referralAmount: number;
+  teamMembers:string;
+  yearsofExperience:string;
+  propertiesSold:string;
 }
 
 interface Service {
@@ -911,6 +914,30 @@ export default function AboutUsManagement() {
                           </Label>
                           <p className="text-gray-700">
                             {companyInfo.establishedYear}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Properties Sold
+                          </Label>
+                          <p className="text-gray-700">
+                            {companyInfo.propertiesSold}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Team Members
+                          </Label>
+                          <p className="text-gray-700">
+                            {companyInfo.teamMembers}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">
+                            Years of Experience
+                          </Label>
+                          <p className="text-gray-700">
+                            {companyInfo.yearsofExperience}
                           </p>
                         </div>
                       </div>
@@ -1794,6 +1821,39 @@ export default function AboutUsManagement() {
                     value={companyInfo.licenseNumber}
                     onChange={(e) =>
                       setCompanyInfo({ ...companyInfo, licenseNumber: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">Properties Sold</Label>
+                  <Input
+                    type="number"
+                    value={companyInfo.propertiesSold}
+                    onChange={(e) =>
+                      setCompanyInfo({ ...companyInfo, propertiesSold: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">Team Members</Label>
+                  <Input
+                    type="number"
+                    value={companyInfo.teamMembers}
+                    onChange={(e) =>
+                      setCompanyInfo({ ...companyInfo, teamMembers: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 dark:text-slate-300">Years of Experience</Label>
+                  <Input
+                    type="number"
+                    value={companyInfo.yearsofExperience}
+                    onChange={(e) =>
+                      setCompanyInfo({ ...companyInfo, yearsofExperience: e.target.value })
                     }
                     className="bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600"
                   />
